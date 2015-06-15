@@ -11,3 +11,8 @@ void Audio::Initialize()
 		std::cerr << mpg123_plain_strerror(err) << std::endl;
 	}
 }
+
+void Audio::Release()
+{
+	mpg123_exit();
+}

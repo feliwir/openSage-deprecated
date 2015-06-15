@@ -10,11 +10,12 @@ Engine::Engine()
 	stream.open("data\\audio\\speech\\mapunfolding.mp3");
 	mp3.openFromStream(stream);
 	mp3.play();
-	m_window.create(sf::VideoMode(800, 600), "SFML window");
+	m_window.create(sf::VideoMode(800, 600), "openSAGE");
 }
 
 Engine::~Engine()
 {
+	Audio::Release();
 }
 
 void Engine::Run()

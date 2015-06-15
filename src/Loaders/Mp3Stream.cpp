@@ -35,8 +35,6 @@ bool Mp3Stream::openFromStream(sf::InputStream& stream)
 		return false;
 	}
 
-	mpg123_param(m_handle, MPG123_VERBOSE, 2, 0); /* Brabble a bit about the parsing/decoding. */
-
 	if (mpg123_open_feed(m_handle)!= MPG123_OK)
 	{
 		std::cerr << mpg123_strerror(m_handle) << std::endl;
@@ -45,7 +43,6 @@ bool Mp3Stream::openFromStream(sf::InputStream& stream)
 
 	len = m_stream->read(m_buf, INBUFF);
 	
-
 	while (ret==MPG123_NEED_MORE)
 	{
 		ret = mpg123_decode(m_handle, m_buf, len, m_out, OUTBUFF, &size);
