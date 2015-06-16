@@ -70,15 +70,21 @@ include_directories (${OPENSAGE_INCLUDE_DIRS})
 
 add_executable(${PROJ_NAME} ${SOURCE_FILES})
 
+target_compile_features(${PROJ_NAME} PRIVATE cxx_range_for)
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    set(ADDITIONAL_LIBS "-lstdc++fs")
+endif()
+
 if (OPENSAGE_BUILD_STATIC)
     set_target_properties(${PROJ_NAME} PROPERTIES
         COMPILE_DEFINITIONS SFML_STATIC)
 		
-	message(STATUS "Link openSage statically against: ${MPG123_LIBRARIES} ${SFML_LIBRARIES} ${SFML_DEPENDENCIES}")
-    target_link_libraries(${PROJ_NAME} PRIVATE ${MPG123_LIBRARIES} ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})
+	message(STATUS "Link openSage statically against: ${MPG123_LIBRARIES} ${SFML_LIBRARIES} ${SFML_DEPENDENCIES} ${ADDITIONAL_LIBS}")
+    target_link_libraries(${PROJ_NAME} PRIVATE ${MPG123_LIBRARIES} ${SFML_LIBRARIES} ${SFML_DEPENDENCIES} ${ADDITIONAL_LIBS})
 else()
-    message(STATUS "Link openSage against: ${MPG123_LIBRARIES} ${SFML_LIBRARIES} ${SFML_DEPENDENCIES}")
-    target_link_libraries(${PROJ_NAME} PRIVATE ${MPG123_LIBRARIES} ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})
+    message(STATUS "Link openSage against: ${MPG123_LIBRARIES} ${SFML_LIBRARIES} ${SFML_DEPENDENCIES} ${ADDITIONAL_LIBS}")
+    target_link_libraries(${PROJ_NAME} PRIVATE ${MPG123_LIBRARIES} ${SFML_LIBRARIES} ${SFML_DEPENDENCIES} ${ADDITIONAL_LIBS})
 endif()
 
 include (${CMAKE_SOURCE_DIR}/cmake/Install.cmake)

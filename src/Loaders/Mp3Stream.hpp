@@ -1,6 +1,9 @@
 #pragma once
 #include <SFML/Audio.hpp>
-#include <mpg123.h>
+#include <stdint.h>
+
+struct mpg123_handle_struct;
+typedef mpg123_handle_struct mpg123_handle;
 
 namespace Loaders
 {

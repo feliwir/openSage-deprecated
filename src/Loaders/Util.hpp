@@ -15,7 +15,7 @@ namespace Util
 	{
 		std::string result;
 		char c;
-		while (c=fin.get())
+		while ((c=fin.get()))
 			result.push_back(c);
 
 		return result;

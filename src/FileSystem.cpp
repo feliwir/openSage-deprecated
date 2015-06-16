@@ -5,10 +5,13 @@
 using namespace std;
 
 #ifdef SFML_SYSTEM_WINDOWS
-	#include <filesystem>
-	using namespace std::tr2::sys;
+//requires atleast msvc 2013
+#include <filesystem>
+using namespace std::tr2::sys;
 #else
-	#include <dirent.h>
+//requires latest gcc/g++! (build from github)
+#include <experimental/filesystem>
+using namespace std::experimental::filesystem;
 #endif
 
 

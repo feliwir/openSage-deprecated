@@ -7,7 +7,8 @@ Engine::Engine()
 {
 	m_window.create(sf::VideoMode(800, 600), "openSAGE",sf::Style::None);
 	sf::Image splash;
-	bool loaded = splash.loadFromFile("GermanSplash.jpg");
+	const std::string splashFile = "GermanSplash.jpg";
+	bool loaded = splash.loadFromFile(splashFile);
 	sf::Texture splashTex;
 	splashTex.loadFromImage(splash);
 	m_window.draw(sf::Sprite(splashTex));

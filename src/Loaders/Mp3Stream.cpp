@@ -1,5 +1,7 @@
 #include "Mp3Stream.hpp"
 #include <iostream>
+#include <mpg123.h>
+
 using namespace Loaders;
 
 
@@ -42,7 +44,7 @@ bool Mp3Stream::openFromStream(sf::InputStream& stream)
 	}
 
 	len = m_stream->read(m_buf, INBUFF);
-	
+
 	while (ret==MPG123_NEED_MORE)
 	{
 		ret = mpg123_decode(m_handle, m_buf, len, m_out, OUTBUFF, &size);
@@ -50,13 +52,13 @@ bool Mp3Stream::openFromStream(sf::InputStream& stream)
 		if (ret == MPG123_NEW_FORMAT)
 		{
 			mpg123_getformat(m_handle, &rate, &channels, &enc);
-			std::cout << "New format: " << rate << " Hz, " << channels << " channels, encoding value " << enc << std::endl; 
+			std::cout << "New format: " << rate << " Hz, " << channels << " channels, encoding value " << enc << std::endl;
 			break;
 		}
 
 		len = m_stream->read(m_buf, INBUFF);
 	}
-	
+
 	initialize(channels, rate);
 	return true;
 }
