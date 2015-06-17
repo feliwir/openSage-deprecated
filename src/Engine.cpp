@@ -2,6 +2,7 @@
 #include "FileSystem.hpp"
 #include "Audio.hpp"
 #include <SFML/Audio.hpp>
+#include <iostream>
 
 Engine::Engine()
 {
@@ -15,9 +16,9 @@ Engine::Engine()
 	m_window.display();
 	Audio::Initialize();
 	FileSystem::Initialize();
-	stream.open("data\\audio\\speech\\mapunfolding.mp3");
-	mp3.openFromStream(stream);
-	mp3.play();
+	mp3.open("data\\audio\\speech\\mapunfolding.mp3");
+	vp6.open("data/movies/EALogo.vp6");
+	m_window.setFramerateLimit(60);
 }
 
 Engine::~Engine()
@@ -27,8 +28,11 @@ Engine::~Engine()
 
 void Engine::Run()
 {
+	mp3.play();
 	while (m_window.isOpen())
 	{
+		m_window.clear();
+
         sf::Event event;
         while (m_window.pollEvent(event))
         {

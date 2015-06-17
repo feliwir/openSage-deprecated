@@ -24,7 +24,10 @@
 
 #define byte unsigned char
 
-class VP62 {
+namespace Loaders
+{
+class VP62 
+{
 private:
     byte   *inputBuffer;	// Points to payload buffer
 
@@ -175,9 +178,10 @@ private:
     void    aaFilterDiag(short *dstBlock, byte *yuv, int offset, int stride, int *hAA, int *vAA);
     void    filteredBlockCopy(short *dstBlock, byte *yuv, int iOffset, int oOffset, int stride, int x8, int y8, bool useEnhancedFilter, int select);
     void    edgeFilter(int n, int pixInc, int lineInc, int t);
-
+	
+	//byte version
 public:
-    VP62();	// Constructor
+    VP62();		// Constructor
     ~VP62();	// Destructor
 
     int	    decodePacket(byte *payload, int length);
@@ -186,3 +190,4 @@ public:
     void    getRGB(byte *rgb);	// Returns RGB32 image
 	void	getYUV(byte** yuv, int* pitch);
 };
+}

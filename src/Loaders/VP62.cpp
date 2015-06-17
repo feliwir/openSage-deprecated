@@ -24,6 +24,8 @@
 #include <string.h>
 #include "VP62.hpp"
 
+using namespace Loaders;
+
 #define FRAME_INTRA 0
 #define MB_SIZE	16
 
@@ -170,22 +172,17 @@ int VP62::parseHeader()
     byte header1;
 
     header1 = inputBuffer[0];
-
-    frameType = (header1 >> 7) & 1;
+    frameType = header1  & 0x80;
     quantizer = (header1 >> 1) & 0x3f;
+	int keyFrame = header1 & 1;
 
-    if (header1 & 1) {
-	return 0;   // Unexpected header
-    }
+    if (frameType == FRAME_INTRA) 
+	{
 
-    if (frameType == FRAME_INTRA) {
 	byte header2;
-
+	
 	header2 = inputBuffer[1];
-
-	if ((header2 & 0xfe) != 0x46) {
-	    return 0;	// Unexpected header
-	}
+	byte version = 0x1F;
 
 	useInterlacing = (header2 & 1) != 0;
 

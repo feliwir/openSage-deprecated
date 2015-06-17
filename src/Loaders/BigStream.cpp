@@ -1,7 +1,9 @@
 #include "BigStream.hpp"
 #include "Util.hpp"
 #include <iostream>
+
 using namespace std;
+using namespace Util;
 
 std::vector<std::shared_ptr<BigStream::BigFile>> BigStream::archives;
 std::map<std::string,std::shared_ptr<BigStream::BigEntry>> BigStream::entries;
@@ -54,12 +56,6 @@ sf::Int64 BigStream::getSize()
 {
 	return entry->size;
 }
-
-inline void Reverse(uint32_t& v)
-{
-	v = (v << 24) | (v << 8 & 0xff0000) | (v >> 8 & 0xff00) | (v >> 24);
-}
-
 
 void BigStream::AddFile(const string& name)
 {
