@@ -12,8 +12,7 @@ class Vp6Stream
 private:
 	struct Vp6_EA_Header
 	{
-		uint32_t unused;
-		uint32_t unused2;
+		uint32_t version;
 		uint32_t frameCount;
 		uint32_t largestChunk;
 		uint32_t denominator;

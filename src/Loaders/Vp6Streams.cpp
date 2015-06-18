@@ -10,6 +10,8 @@ using namespace std;
 #define MV0K_TAG MKTAG('M', 'V', '0', 'K')
 #define MV0F_TAG MKTAG('M', 'V', '0', 'F')
 #define MVhd_TAG MKTAG('M', 'V', 'h', 'd')
+#define VP60_TAG MKTAG('v', 'p', '6', '0')
+#define VP61_TAG MKTAG('v', 'p', '6', '1')
 
 bool Vp6Stream::open(const std::string& name)
 {
@@ -27,6 +29,7 @@ bool Vp6Stream::open(const std::string& name)
 
 	size = Read<uint32_t>(m_fin);
 	m_header = Read<Vp6_EA_Header>(m_fin);
+
 	m_fin.seekg(size, std::ios::beg);
 	
 	m_fps = m_header.denominator / m_header.numerator;
@@ -44,7 +47,15 @@ bool Vp6Stream::open(const std::string& name)
 	m_vp62.decodePacket(buf, chunk_size);
 	delete[] buf;
 	m_vp62.getImageSize((int*)&m_width, (int*)&m_height);
-	cout << "Video width: "<<m_width << " height: " << m_height <<" fps: "<< m_fps << endl;
+	if(m_header.version==VP60_TAG)
+		cout << "Video: version: VP60 width: "<<m_width << " height: " << m_height <<" fps: "<< m_fps << endl;
+	else if(m_header.version==VP61_TAG)
+		cout << "Video: version: VP61 width: "<<m_width << " height: " << m_height <<" fps: "<< m_fps << endl;
+	else
+	{
+		cout << "Unsupported codec" << endl;
+		return false;
+	}
 
 }
 
