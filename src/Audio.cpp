@@ -35,7 +35,7 @@ void Audio::Update()
 {
 	while (m_running)
 	{
-		for each (auto stream in m_streams)
+		for(auto& stream : m_streams)
 		{
 			stream->update();
 		}

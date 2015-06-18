@@ -16,8 +16,8 @@ Engine::Engine()
 	m_window.display();
 	Audio::Initialize();
 	FileSystem::Initialize();
-	mp3.open("data\\audio\\speech\\mapunfolding.mp3");
-	vp6.open("data/movies/EALogo.vp6");
+	//mp3.open("data\\audio\\speech\\mapunfolding.mp3");
+	vp6.open("data/movies/cs12.vp6");
 	m_window.setFramerateLimit(60);
 }
 
@@ -28,7 +28,9 @@ Engine::~Engine()
 
 void Engine::Run()
 {
-	mp3.play();
+	//mp3.play();
+	vp6.play();
+
 	while (m_window.isOpen())
 	{
 		m_window.clear();

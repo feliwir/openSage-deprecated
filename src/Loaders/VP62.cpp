@@ -169,29 +169,34 @@ int VP62::parseHeader()
 {
     int res = 1;
     int parseFilterInfo;
+    int index = 0;
+    int keyFrame = 0;
     byte header1;
 
-    header1 = inputBuffer[0];
+    header1 = inputBuffer[index++];
     frameType = header1  & 0x80;
     quantizer = (header1 >> 1) & 0x3f;
-	int keyFrame = header1 & 1;
+	keyFrame = header1 & 1;
 
     if (frameType == FRAME_INTRA) 
 	{
 
 	byte header2;
 	
-	header2 = inputBuffer[1];
+	header2 = inputBuffer[index++];
 	byte version = 0x1F;
 
 	useInterlacing = (header2 & 1) != 0;
 
-	int imgRows = inputBuffer[2] * 2;
-	int imgCols = inputBuffer[3] * 2;
+	if(keyFrame)
+		index+=2;
+
+	int imgRows = inputBuffer[index++] * 2;
+	int imgCols = inputBuffer[index++] * 2;
 
 	// Aspect ratio info
-	displayRows    = inputBuffer[4] * 2;
-	displayColumns = inputBuffer[5] * 2;
+	displayRows    = inputBuffer[index++] * 2;
+	displayColumns = inputBuffer[index++] * 2;
 
 	acInit(inputBuffer + 6);
 
@@ -2293,9 +2298,9 @@ void VP62::getRGB(byte *rgb32)
 	    g = CLIP(g);
 	    b = CLIP(b);
 
-	    *ptr0++ = (byte)b;
-	    *ptr0++ = (byte)g;
 	    *ptr0++ = (byte)r;
+	    *ptr0++ = (byte)g;
+	    *ptr0++ = (byte)b;
 	    *ptr0++ = 0xff;
 
 	    // Y
@@ -2309,9 +2314,9 @@ void VP62::getRGB(byte *rgb32)
 	    g = CLIP(g);
 	    b = CLIP(b);
 
-	    *ptr0++ = (byte)b;
-	    *ptr0++ = (byte)g;
 	    *ptr0++ = (byte)r;
+	    *ptr0++ = (byte)g;
+	    *ptr0++ = (byte)b;
 	    *ptr0++ = 0xff;
 
 	    //////// SECOND LINE
@@ -2326,9 +2331,9 @@ void VP62::getRGB(byte *rgb32)
 	    g = CLIP(g);
 	    b = CLIP(b);
 
-	    *ptr1++ = (byte)b;
-	    *ptr1++ = (byte)g;
 	    *ptr1++ = (byte)r;
+	    *ptr1++ = (byte)g;
+	    *ptr1++ = (byte)b;
 	    *ptr1++ = 0xff;
 
 	    // Y
@@ -2342,9 +2347,9 @@ void VP62::getRGB(byte *rgb32)
 	    g = CLIP(g);
 	    b = CLIP(b);
 
-	    *ptr1++ = (byte)b;
-	    *ptr1++ = (byte)g;
 	    *ptr1++ = (byte)r;
+	    *ptr1++ = (byte)g;
+	    *ptr1++ = (byte)b;
 	    *ptr1++ = 0xff;
 	}
 

@@ -3,6 +3,8 @@
 #include <string>
 #include <fstream>
 #include <stdint.h>
+#include <SFML/Graphics.hpp>
+
 namespace Loaders
 {
 class Vp6Stream
@@ -27,7 +29,10 @@ public:
 private:
 	std::ifstream m_fin;
 	Vp6_EA_Header m_header;
+	sf::Image m_img;
 	VP62 m_vp62;
+	uint32_t m_width;
+	uint32_t m_height;
 	double m_fps;
 };
 }
