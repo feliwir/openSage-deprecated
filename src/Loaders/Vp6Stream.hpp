@@ -1,37 +1,44 @@
 #pragma once
-#include "VP62.hpp"
 #include <string>
-#include <fstream>
 #include <stdint.h>
+#include <mutex>
+#include <thread>
 #include <SFML/Graphics.hpp>
+
+extern "C"
+{
+#include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
+}
+
 
 namespace Loaders
 {
 class Vp6Stream
 {
-private:
-	struct Vp6_EA_Header
-	{
-		uint32_t version;
-		uint32_t frameCount;
-		uint32_t largestChunk;
-		uint32_t denominator;
-		uint32_t numerator;
-	};
 public:
+	Vp6Stream();
+	~Vp6Stream();
+
 	bool open(const std::string& name);
 	void play();
-	inline void getRGBA(unsigned char* rgba)
+	void update();
+	inline sf::Texture& GetTexture()
 	{
-		m_vp62.getRGB(rgba);
+		return m_tex;
 	}
 private:
-	std::ifstream m_fin;
-	Vp6_EA_Header m_header;
-	sf::Image m_img;
-	VP62 m_vp62;
-	uint32_t m_width;
-	uint32_t m_height;
-	double m_fps;
+	AVFormatContext* m_fmtCtx;
+	AVCodecContext* m_codecCtx;
+	AVCodec* m_codec;
+	AVFrame* m_frame;
+	AVFrame* m_frameRGB;
+	SwsContext* m_swsCtx;
+	uint8_t* m_buf;
+	int8_t m_streamIndex;
+	uint32_t m_curFrame;
+	std::thread m_thread;
+	sf::Texture m_tex;
+	bool m_running;
 };
 }

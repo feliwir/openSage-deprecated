@@ -23,7 +23,7 @@ void FileSystem::Initialize()
 	for (const auto& file : files)
 		BigStream::AddFile(file);
 
-	std::cout << "FileSystem: Current Workingdir: " << current_path().string() << std::endl;
+	std::cout << "FileSystem: Current Workingdir: " << system_complete(path(".")).string() << std::endl;
 	std::cout << "FileSystem: Added " << files.size() << " BigArchives" << std::endl;
 }
 

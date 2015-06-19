@@ -33,4 +33,5 @@ namespace Util
 		fin.read((char*)buf, size);
 		return buf;
 	}
+
 }

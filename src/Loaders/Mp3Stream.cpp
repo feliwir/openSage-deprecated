@@ -106,7 +106,6 @@ void Mp3Stream::onSeek(sf::Time timeOffset)
 		mpg123_seek(m_handle, timeOffset.asSeconds(), 0);
 }
 
-
 void Mp3Stream::update()
 {
 	sf::Int64 len;

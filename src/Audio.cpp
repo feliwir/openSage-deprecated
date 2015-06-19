@@ -4,7 +4,7 @@
 
 std::vector<std::shared_ptr<Loaders::Mp3Stream>> Audio::m_streams;
 std::thread Audio::m_thread;
-bool Audio::m_running = true;
+bool Audio::m_running = false;
 
 void Audio::Initialize()
 {
