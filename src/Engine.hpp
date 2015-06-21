@@ -13,6 +13,4 @@ public:
 
 private:
 	sf::RenderWindow m_window;
-	Loaders::Mp3Stream mp3;
-	Loaders::Vp6Stream vp6;
 };

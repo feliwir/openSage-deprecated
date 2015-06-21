@@ -1,7 +1,8 @@
 #include "Engine.hpp"
 #include "FileSystem.hpp"
-#include "Audio.hpp"
-#include "Video.hpp"
+#include "AudioSystem.hpp"
+#include "VideoSystem.hpp"
+#include "Game/Handler.hpp"
 #include <SFML/Audio.hpp>
 #include <iostream>
 
@@ -15,23 +16,20 @@ Engine::Engine()
 	splashTex.loadFromImage(splash);
 	m_window.draw(sf::Sprite(splashTex));
 	m_window.display();
-	Audio::Initialize();
-	Video::Initialize();
+	AudioSystem::Initialize();
+	VideoSystem::Initialize();
 	FileSystem::Initialize();
-	mp3.open("data\\audio\\speech\\mapunfolding.mp3");
-	vp6.open("data/movies/EALogo.vp6");
-	m_window.setFramerateLimit(60);
+	Game::Handler::Initialize();
 }
 
 Engine::~Engine()
 {
-	Audio::Release();
+	AudioSystem::Release();
+	VideoSystem::Release();
 }
 
 void Engine::Run()
 {
-	mp3.play();
-	vp6.play();
 	//m_window.create(sf::VideoMode(1920, 1080), "openSAGE", sf::Style::Fullscreen);
 
 	while (m_window.isOpen())

@@ -83,3 +83,11 @@ void BigStream::AddFile(const string& name)
 
 	archives.push_back(big);
 }
+
+const std::string& BigStream::readAll()
+{
+	std::string buffer;
+	buffer.reserve(getSize());
+	read(&buffer[0], getSize());
+	return buffer;
+}

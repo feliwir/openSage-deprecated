@@ -1,5 +1,5 @@
 #include "Mp3Stream.hpp"
-#include "../Audio.hpp"
+#include "../AudioSystem.hpp"
 #include <iostream>
 #include <mpg123.h>
 
@@ -111,7 +111,6 @@ void Mp3Stream::update()
 	sf::Int64 len;
 	if (!m_hasData)
 	{
-		std::cout << "Loading mp3 stream" << std::endl;
 		len = m_stream.read(m_buf, INBUFF);
 		if (mpg123_feed(m_handle, m_buf, len) == MPG123_ERR)
 			m_isDone = true;

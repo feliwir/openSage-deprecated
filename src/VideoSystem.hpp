@@ -4,7 +4,7 @@
 #include <memory>
 #include "Loaders/Vp6Stream.hpp"
 
-class Video
+class VideoSystem
 {
 public:
 	static void Initialize();

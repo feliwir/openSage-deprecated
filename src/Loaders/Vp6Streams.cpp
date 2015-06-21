@@ -1,6 +1,6 @@
 #include "Vp6Stream.hpp"
 #include "Util.hpp"
-#include "../Video.hpp"
+#include "../VideoSystem.hpp"
 #include <iostream>
 #include <libswscale/swscale.h>
 
@@ -106,15 +106,13 @@ void Vp6Stream::update()
 	auto last = std::chrono::high_resolution_clock::now();
 	int frameFinished;
 	m_curFrame = false;
-	double fps = 1.0 / av_q2d(m_codecCtx->time_base);
-	auto frameLength = std::chrono::microseconds((int)((1.0f/fps)*1000000));
+	auto frameLength = std::chrono::nanoseconds((long)(av_q2d(m_codecCtx->time_base) * 1000000000));
 
 	while (av_read_frame(m_fmtCtx, &packet) >= 0 && m_running==true)
 	{
 		// Is this a packet from the video stream?
 		if (packet.stream_index == m_streamIndex)
-		{
-			
+		{			
 			// Decode video frame
 			avcodec_decode_video2(m_codecCtx, m_frame, &frameFinished, &packet);
 
@@ -127,19 +125,15 @@ void Vp6Stream::update()
 					m_frameRGB->data, m_frameRGB->linesize);
 
 				m_tex.update((sf::Uint8*)m_frameRGB->data[0]);
-				auto current = std::chrono::high_resolution_clock::now();
-				auto duration = std::chrono::duration_cast<std::chrono::microseconds>(current - last);
-				last = current;
-				std::this_thread::sleep_for(frameLength-duration);			
+				std::this_thread::sleep_until(last+frameLength);
+				last = std::chrono::high_resolution_clock::now();
 				++m_curFrame;
 			}
 		}
-
 		// Free the packet that was allocated by av_read_frame
 		av_free_packet(&packet);
 		
 	}
-
 	m_running = false;
 	
 }
