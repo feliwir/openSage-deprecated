@@ -2,30 +2,50 @@
 #include <map>
 #include <string>
 #include <stdint.h>
+#include <iostream>
 
 class GameData
 {
 public:
-	struct Speech
+	struct INIObject
 	{
-		const std::string filename;
+		inline virtual void PrintInfo()
+		{
+			std::cout << "No info available" << std::endl;
+		}
+	};
+
+	struct Speech : INIObject
+	{
+		std::string filename;
 		uint8_t mixer;
 		uint8_t volume;
+
+		inline virtual void PrintInfo()
+		{
+			std::cout << "Speech: Filename: " << filename << std::endl;
+		}
 	};
 
-	struct Video
+	struct Video : INIObject
 	{
-		const std::string filename;
+		std::string filename;
+
+		inline virtual void PrintInfo()
+		{
+			std::cout << "Video: Filename: " << filename << std::endl;
+		}
+
 	};
 public:
-	inline void SetSpeech(std::map<std::string,Speech>& speech)
+	inline void AddSpeech(std::string& name,Speech& speech)
 	{
-		m_speech = speech;
+		m_speech[name] = speech;
 	}
 
-	inline void SetVideo(std::map<std::string, Video>& videos)
+	inline void AddVideo(std::string& name, Video& video)
 	{
-		m_videos = videos;
+		m_videos[name] = video;
 	}
 private:
 	std::map<std::string, Speech> m_speech;

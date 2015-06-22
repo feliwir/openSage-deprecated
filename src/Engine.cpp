@@ -42,9 +42,6 @@ void Engine::Run()
             if (event.type == sf::Event::Closed)
                 m_window.close();
         }
-		sf::Sprite spr(vp6.GetTexture());
-		spr.setScale(800.0f / spr.getTextureRect().width, 600.0f / spr.getTextureRect().height);
-		m_window.draw(spr);
 		m_window.display();
 	}
 }

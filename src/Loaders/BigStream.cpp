@@ -1,6 +1,7 @@
 #include "BigStream.hpp"
 #include "Util.hpp"
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 using namespace Util;
@@ -76,18 +77,11 @@ void BigStream::AddFile(const string& name)
 		entry->size = Util::Read<uint32_t>(big->fin);
 		Reverse(entry->size);
 		entry->name = Util::ReadString(big->fin);
+		std::replace(entry->name.begin(),entry->name.end(),'\\', '/');
 		entry->container = big;
 		big->entries.push_back(entry);
 		entries[entry->name] = entry;
 	}
 
 	archives.push_back(big);
-}
-
-const std::string& BigStream::readAll()
-{
-	std::string buffer;
-	buffer.reserve(getSize());
-	read(&buffer[0], getSize());
-	return buffer;
 }

@@ -62,7 +62,7 @@ bool Mp3Stream::open(const std::string& name)
 		len = m_stream.read(m_buf, INBUFF);
 	}
 
-	Audio::RegisterStream(*this);
+	AudioSystem::RegisterStream(*this);
 	initialize(channels, rate);
 	return true;
 }
