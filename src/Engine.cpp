@@ -35,7 +35,7 @@ void Engine::Run()
 	while (m_window.isOpen())
 	{
 		m_window.clear();
-
+		Game::Handler::Update();
         sf::Event event;
         while (m_window.pollEvent(event))
         {

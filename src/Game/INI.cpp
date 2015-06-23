@@ -63,7 +63,6 @@ bool INI::Parse(const std::string& content)
 						sectionName = line.substr(pos, line.size());
 						sectionName.erase(std::remove(sectionName.begin(), 
 							sectionName.end(), ' '), sectionName.end());
-						std::cout << "Parsed video: " << sectionName << std::endl;
 					}
 					break;
 					case DIALOG_EVENT:
@@ -71,7 +70,6 @@ bool INI::Parse(const std::string& content)
 						state = PARSE_DIALOG_EVENT;
 						obj = std::make_shared<GameData::DialogEvent>();
 						sectionName = line.substr(pos, line.size());
-						std::cout << "Parsed dialog event: " << sectionName << std::endl;
 					}
 					break;
 					}
@@ -86,7 +84,7 @@ bool INI::Parse(const std::string& content)
 				auto it = parameters.find(paramStr);
 				if (it == parameters.end())
 				{
-					std::cout << "Unknown parameter \""<<paramStr<< "\" in line: " << n << std::endl;
+					//std::cout << "Unknown parameter \""<<paramStr<< "\" in line: " << n << std::endl;
 				}
 				else
 				{
@@ -126,7 +124,7 @@ bool INI::Parse(const std::string& content)
 
 				if (it == parameters.end())
 				{
-					std::cout << "Unknown parameter \""<<paramStr<< "\" in line: " << n << std::endl;
+					//std::cout << "Unknown parameter \""<<paramStr<< "\" in line: " << n << std::endl;
 				}
 				else
 				{

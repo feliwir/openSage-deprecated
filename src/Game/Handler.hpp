@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <map>
+#include <vector> 
 #include "../Loaders/Mp3Stream.hpp"
 #include "../Loaders/Vp6Stream.hpp"
 
@@ -36,14 +36,22 @@ namespace Game
 			APT			= 1,
 		};
 
-		static const std::map<std::string, GameState> loadOrder;
+
+		struct LoadInfo
+		{
+			const std::string name;
+			GameState state;
+		};
+
+		static const std::vector<LoadInfo> loadOrder;
 	public:
 		static void Initialize();
 		static void Update();
 	private:
 		//INI paths
-		static const std::string video;
-		static const std::string speech;
+		static const std::string videoINI;
+		static const std::string speechINI;
 		static std::shared_ptr<StateInfo> cState;
+		static int state_index;
 	};
 }
