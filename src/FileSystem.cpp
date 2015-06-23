@@ -11,8 +11,8 @@ using namespace std;
 using namespace std::tr2::sys;
 #else
 //requires latest gcc/g++! (build from github)
-#include <experimental/filesystem>
-using namespace std::experimental::filesystem;
+#include <boost/filesystem.hpp>
+using namespace boost::filesystem;
 #endif
 
 

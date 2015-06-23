@@ -80,7 +80,7 @@ add_executable(${PROJ_NAME} ${SOURCE_FILES})
 target_compile_features(${PROJ_NAME} PRIVATE cxx_range_for)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set(ADDITIONAL_LIBS "-lstdc++fs -lm -lpthread")
+    set(ADDITIONAL_LIBS "-lboost_system -lboost_filesystem -lz -lm -lpthread")
 endif()
 
 if (OPENSAGE_BUILD_STATIC)
@@ -91,7 +91,7 @@ if (OPENSAGE_BUILD_STATIC)
     target_link_libraries(${PROJ_NAME} PRIVATE ${MPG123_LIBRARIES} ${SFML_LIBRARIES} ${SFML_DEPENDENCIES} ${FFMPEG_LIBRARIES} ${ADDITIONAL_LIBS})
 else()
     message(STATUS "Link openSage against: ${MPG123_LIBRARIES} ${SFML_LIBRARIES} ${SFML_DEPENDENCIES} ${FFMPEG_LIBRARIES} ${ADDITIONAL_LIBS}")
-    target_link_libraries(${PROJ_NAME} PRIVATE ${MPG123_LIBRARIES} ${SFML_LIBRARIES} ${SFML_DEPENDENCIES} ${FFMPEG_LIBRARIES} ${ADDITIONAL_LIBS})
+    target_link_libraries(${PROJ_NAME} PRIVATE ${MPG123_LIBRARIES} ${SFML_LIBRARIES} ${SFML_DEPENDENCIES}  ${FFMPEG_LIBRARIES}  ${ADDITIONAL_LIBS})
 endif()
 
 include (${CMAKE_SOURCE_DIR}/cmake/Install.cmake)
