@@ -23,9 +23,26 @@ public:
 	bool open(const std::string& name);
 	void play();
 	void update();
+
+	inline void stop()
+	{
+		m_status = Stopped;
+	}
+
 	inline sf::Texture& GetTexture()
 	{
 		return m_tex;
+	}
+
+	enum Status
+	{
+		Stopped = 0,
+		Playing = 1
+	};
+
+	inline Status getStatus()
+	{
+		return m_status;
 	}
 private:
 	AVFormatContext* m_fmtCtx;
@@ -40,5 +57,6 @@ private:
 	std::thread m_thread;
 	sf::Texture m_tex;
 	bool m_running;
+	Status m_status;
 };
 }

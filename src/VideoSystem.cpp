@@ -5,7 +5,7 @@
 
 void VideoSystem::Initialize()
 {
-	av_register_all();
+	//av_register_all();
 }
 
 void VideoSystem::Release()

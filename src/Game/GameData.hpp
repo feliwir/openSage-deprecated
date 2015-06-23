@@ -3,6 +3,7 @@
 #include <string>
 #include <stdint.h>
 #include <iostream>
+#include <memory>
 
 class GameData
 {
@@ -15,9 +16,10 @@ public:
 		}
 	};
 
-	struct Speech : INIObject
+	struct DialogEvent : INIObject
 	{
 		std::string filename;
+		std::string comment;
 		uint8_t mixer;
 		uint8_t volume;
 
@@ -30,6 +32,7 @@ public:
 	struct Video : INIObject
 	{
 		std::string filename;
+		std::string comment;
 
 		inline virtual void PrintInfo()
 		{
@@ -38,16 +41,16 @@ public:
 
 	};
 public:
-	inline void AddSpeech(std::string& name,Speech& speech)
+	static inline void AddDialogEvent(std::string& name,std::shared_ptr<DialogEvent> speech)
 	{
-		m_speech[name] = speech;
+		gd_dialogs[name] = speech;
 	}
 
-	inline void AddVideo(std::string& name, Video& video)
+	static inline void AddVideo(std::string& name, std::shared_ptr<Video> video)
 	{
-		m_videos[name] = video;
+		gd_videos[name] = video;
 	}
 private:
-	std::map<std::string, Speech> m_speech;
-	std::map<std::string, Video> m_videos;
+	static std::map<std::string, std::shared_ptr<DialogEvent>> gd_dialogs;
+	static std::map<std::string, std::shared_ptr<Video>> gd_videos;
 };

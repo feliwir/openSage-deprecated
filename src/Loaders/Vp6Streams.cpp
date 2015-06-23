@@ -95,7 +95,7 @@ bool Vp6Stream::open(const std::string& name)
 
 void Vp6Stream::play()
 {
-	m_running = true;
+	m_status = Playing;
 	m_thread = std::thread(&Vp6Stream::update, this);
 	
 }
@@ -108,7 +108,7 @@ void Vp6Stream::update()
 	m_curFrame = false;
 	auto frameLength = std::chrono::nanoseconds((long)(av_q2d(m_codecCtx->time_base) * 1000000000));
 
-	while (av_read_frame(m_fmtCtx, &packet) >= 0 && m_running==true)
+	while (av_read_frame(m_fmtCtx, &packet) >= 0 && m_status==Playing)
 	{
 		// Is this a packet from the video stream?
 		if (packet.stream_index == m_streamIndex)
@@ -134,6 +134,6 @@ void Vp6Stream::update()
 		av_free_packet(&packet);
 		
 	}
-	m_running = false;
-	
+	m_status = Stopped;	
 }
+

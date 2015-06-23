@@ -1,38 +1,49 @@
 #pragma once
 #include <string>
 #include <map>
+#include "../Loaders/Mp3Stream.hpp"
+#include "../Loaders/Vp6Stream.hpp"
 
 namespace Game
 {
 	class Handler
 	{
 	private:
-		enum ParserState
+		struct StateInfo
 		{
-			NEW_SECTION = 0,
-			PARSE_VIDEO = 1,
+			virtual bool IsDone() = 0;
 		};
 
-		enum Section
+		struct CinematicInfo : public StateInfo
 		{
-			VIDEO = 0,
-			SPEECH = 1
+			inline bool IsDone()
+			{
+				if(mp3.getStatus()==Loaders::Mp3Stream::Stopped &&
+					vp6.getStatus()==Loaders::Vp6Stream::Stopped)
+					return true;
+
+				return false;
+			};
+
+		private:
+			Loaders::Vp6Stream vp6;
+			Loaders::Mp3Stream mp3;
 		};
 
-		enum ParametersVideo
+		enum GameState
 		{
-			FILENAME = 0,
-			COMMENT = 1,
+			CINEMATIC 	= 0,
+			APT			= 1,
 		};
 
-		static const std::map<std::string, Section> sections;
-		static const std::map<std::string, ParametersVideo> parameters_video;
+		static const std::map<std::string, GameState> loadOrder;
 	public:
 		static void Initialize();
+		static void Update();
 	private:
 		//INI paths
 		static const std::string video;
 		static const std::string speech;
-		static bool ParseINI(std::string& content);
+		static std::shared_ptr<StateInfo> cState;
 	};
 }
