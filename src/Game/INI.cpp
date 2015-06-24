@@ -70,6 +70,8 @@ bool INI::Parse(const std::string& content)
 						state = PARSE_DIALOG_EVENT;
 						obj = std::make_shared<GameData::DialogEvent>();
 						sectionName = line.substr(pos, line.size());
+						sectionName.erase(std::remove(sectionName.begin(),
+							sectionName.end(), ' '), sectionName.end());
 					}
 					break;
 					}
@@ -99,16 +101,14 @@ bool INI::Parse(const std::string& content)
 						break;
 						case FILENAME:
 						{
-							state = PARSE_VIDEO;
 							auto video = std::dynamic_pointer_cast<GameData::Video>(obj);
-							video->filename = line.substr(pos, line.size());
+							video->filename = line.substr(pos+1, line.size());
 						}
 						break;
 						case COMMENT:
 						{
-							state = PARSE_VIDEO;
 							auto video = std::dynamic_pointer_cast<GameData::Video>(obj);
-							video->comment = line.substr(pos, line.size());
+							video->comment = line.substr(pos+1, line.size());
 						}
 					}
 				}
@@ -139,16 +139,14 @@ bool INI::Parse(const std::string& content)
 						break;
 						case FILENAME:
 						{
-							state = PARSE_VIDEO;
 							auto video = std::dynamic_pointer_cast<GameData::DialogEvent>(obj);
-							video->filename = line.substr(pos, line.size());
+							video->filename = line.substr(pos+1, line.size());
 						}
 						break;
 						case COMMENT:
 						{
-							state = PARSE_VIDEO;
 							auto video = std::dynamic_pointer_cast<GameData::Video>(obj);
-							video->comment = line.substr(pos, line.size());
+							video->comment = line.substr(pos+1, line.size());
 						}
 					}
 				}

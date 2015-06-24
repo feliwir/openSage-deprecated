@@ -57,12 +57,12 @@ public:
 
 	static inline std::shared_ptr<DialogEvent>& GetDialogEvent(const std::string& name)
 	{
-		return gd_dialogs.at(name);
+		return gd_dialogs[name];
 	}
 
 	static inline std::shared_ptr<Video>& GetVideo(const std::string& name)
 	{
-		return gd_videos.at(name);
+		return gd_videos[name];
 	}
 private:
 	static std::map<std::string, std::shared_ptr<DialogEvent>> gd_dialogs;

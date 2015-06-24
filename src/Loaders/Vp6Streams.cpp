@@ -9,16 +9,19 @@ using namespace Loaders;
 using namespace std;
 
 Vp6Stream::Vp6Stream() : m_fmtCtx(NULL), m_codecCtx(NULL), m_codec(NULL),
-	m_frame(NULL), m_curFrame(0)
+m_frame(NULL), m_curFrame(0), m_frameRGB(NULL), m_buf(NULL)
 {
-
+	m_running = false;
 }
 
 Vp6Stream::~Vp6Stream()
 {
-	av_free(m_buf);
-	av_free(m_frameRGB);
-	av_free(m_frame);
+	if (m_thread.joinable())
+		m_thread.join();
+
+	av_freep(&m_frameRGB);
+	av_freep(&m_frame);
+	av_freep(&m_buf);	
 	avcodec_close(m_codecCtx);
 	avformat_close_input(&m_fmtCtx);
 }
@@ -90,12 +93,17 @@ bool Vp6Stream::open(const std::string& name)
 
 	m_tex.create(m_codecCtx->width, m_codecCtx->height);
 	m_tex.setSmooth(true);
+	m_status = Stopped;
 	return true;
 }
 
 void Vp6Stream::play()
 {
+	if (m_status == Playing)
+		return;
+
 	m_status = Playing;
+	m_running = true;
 	m_thread = std::thread(&Vp6Stream::update, this);
 	
 }
@@ -103,13 +111,21 @@ void Vp6Stream::play()
 void Vp6Stream::update()
 {
 	AVPacket packet;
-	auto last = std::chrono::high_resolution_clock::now();
 	int frameFinished;
 	m_curFrame = false;
-	auto frameLength = std::chrono::nanoseconds((long)(av_q2d(m_codecCtx->time_base) * 1000000000));
+	double fps = m_codecCtx->time_base.den / m_codecCtx->time_base.num;
+	auto frameLength = std::chrono::milliseconds((int)(1/fps* 1000));
+	auto last = std::chrono::high_resolution_clock::now();
 
-	while (av_read_frame(m_fmtCtx, &packet) >= 0 && m_status==Playing)
+	while (av_read_frame(m_fmtCtx, &packet) >= 0)
 	{
+		if (m_running == false)
+		{
+			av_free_packet(&packet);
+			break;
+		}
+			
+
 		// Is this a packet from the video stream?
 		if (packet.stream_index == m_streamIndex)
 		{			
@@ -125,15 +141,16 @@ void Vp6Stream::update()
 					m_frameRGB->data, m_frameRGB->linesize);
 
 				m_tex.update((sf::Uint8*)m_frameRGB->data[0]);
-				std::this_thread::sleep_until(last+frameLength);
-				last = std::chrono::high_resolution_clock::now();
+				last += frameLength;
+				std::this_thread::sleep_until(last);
 				++m_curFrame;
 			}
 		}
 		// Free the packet that was allocated by av_read_frame
-		av_free_packet(&packet);
-		
+		av_free_packet(&packet);	
 	}
+
+	std::cout << "End stream!" << std::endl;
 	m_status = Stopped;	
 }
 

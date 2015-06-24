@@ -2,7 +2,7 @@
 #include <mpg123.h>
 #include <iostream>
 
-std::vector<std::shared_ptr<Loaders::Mp3Stream>> AudioSystem::m_streams;
+std::vector<Loaders::Mp3Stream*> AudioSystem::m_streams;
 std::thread AudioSystem::m_thread;
 bool AudioSystem::m_running = false;
 
@@ -26,10 +26,15 @@ void AudioSystem::Release()
 	mpg123_exit();
 }
 
-void AudioSystem::RegisterStream(Loaders::Mp3Stream& stream)
+void AudioSystem::RegisterStream(Loaders::Mp3Stream* stream)
 {
-	m_streams.push_back(std::shared_ptr<Loaders::Mp3Stream>(&stream));
+	m_streams.push_back(stream);
 }
+void AudioSystem::UnregisterStream(Loaders::Mp3Stream* stream)
+{
+	m_streams.erase(std::remove(m_streams.begin(), m_streams.end(), stream), m_streams.end());
+}
+
 
 void AudioSystem::Update()
 {
@@ -41,6 +46,10 @@ void AudioSystem::Update()
 		}
 
 		//no need to check for updates this frequently
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		if (m_streams.size() > 0)
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(50));
+		}
 	}
 }

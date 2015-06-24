@@ -62,7 +62,7 @@ bool Mp3Stream::open(const std::string& name)
 		len = m_stream.read(m_buf, INBUFF);
 	}
 
-	AudioSystem::RegisterStream(*this);
+	AudioSystem::RegisterStream(this);
 	initialize(channels, rate);
 	return true;
 }
@@ -81,14 +81,21 @@ bool Mp3Stream::onGetData(Chunk& data)
 		{
 			while (!m_hasData)
 			{
-				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
 			}
 
 			ret = mpg123_read(m_handle, m_out, OUTBUFF, &size);
+			off_t offset = mpg123_tell_stream(m_handle);
+			if (offset == m_stream.getSize())
+			{
+				AudioSystem::UnregisterStream(this);
+				return false;
+			}
+				
 			if (ret == MPG123_OK)
 				break;
 			else if (ret == MPG123_ERR)
-				return false;		
+				return false;
 		}
 
 		data.samples = (short*)m_out;
@@ -112,9 +119,10 @@ void Mp3Stream::update()
 	if (!m_hasData)
 	{
 		len = m_stream.read(m_buf, INBUFF);
-		if (mpg123_feed(m_handle, m_buf, len) == MPG123_ERR)
+		if (mpg123_feed(m_handle, m_buf, len) == MPG123_DONE)
 			m_isDone = true;
 
+		
 		m_hasData = true;
 	}
 

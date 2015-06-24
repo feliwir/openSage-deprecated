@@ -35,13 +35,26 @@ void Engine::Run()
 	while (m_window.isOpen())
 	{
 		m_window.clear();
-		Game::Handler::Update();
+		
         sf::Event event;
         while (m_window.pollEvent(event))
         {
-            if (event.type == sf::Event::Closed)
-                m_window.close();
+			switch (event.type)
+			{
+			case sf::Event::Closed:
+				m_window.close();
+				break;
+			case sf::Event::KeyPressed:
+				Game::Handler::KeyDown(event.key);
+				break;
+			case sf::Event::KeyReleased:
+				Game::Handler::KeyUp(event.key);
+				break;
+			}
+      
         }
+
+		Game::Handler::Update(m_window);
 		m_window.display();
 	}
 }

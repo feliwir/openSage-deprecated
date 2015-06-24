@@ -31,9 +31,13 @@ bool BigStream::open(const std::string& filename)
 
 sf::Int64 BigStream::read(void* data,sf::Int64 size)
 {
+	sf::Int64 result = 0;
 	entry->container->fin.seekg(entry->offset + pos, ios::beg);
-	entry->container->fin.read((char*)data, size);
-	sf::Int64 result = entry->container->fin.gcount();
+	if (pos + size > entry->size)
+		result = entry->size - pos;
+	else
+		result = size;
+	entry->container->fin.read((char*)data, result);
 	pos += result;
 	return result;
 }

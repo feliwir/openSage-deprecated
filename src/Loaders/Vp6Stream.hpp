@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <stdint.h>
-#include <mutex>
+#include <atomic>
 #include <thread>
 #include <SFML/Graphics.hpp>
 
@@ -20,6 +20,12 @@ public:
 	Vp6Stream();
 	~Vp6Stream();
 
+	enum Status
+	{
+		Stopped = 0,
+		Playing = 1
+	};
+
 	bool open(const std::string& name);
 	void play();
 	void update();
@@ -27,6 +33,9 @@ public:
 	inline void stop()
 	{
 		m_status = Stopped;
+		m_running = false;
+		if(m_thread.joinable())
+			m_thread.join();
 	}
 
 	inline sf::Texture& GetTexture()
@@ -34,11 +43,6 @@ public:
 		return m_tex;
 	}
 
-	enum Status
-	{
-		Stopped = 0,
-		Playing = 1
-	};
 
 	inline Status getStatus()
 	{
@@ -56,7 +60,7 @@ private:
 	uint32_t m_curFrame;
 	std::thread m_thread;
 	sf::Texture m_tex;
-	bool m_running;
+	std::atomic_bool m_running;
 	Status m_status;
 };
 }
