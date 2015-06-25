@@ -150,6 +150,7 @@ void Handler::Update(sf::RenderWindow& m_window)
 			auto sprite = sf::Sprite(cinematic->GetVP6()->GetTexture());
 			sprite.setScale((float)m_window.getSize().x / sprite.getTextureRect().width,
 							(float)m_window.getSize().y / sprite.getTextureRect().height);
+			
 			m_window.draw(sprite);
 			
 			if (escPressed)

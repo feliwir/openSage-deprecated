@@ -91,7 +91,10 @@ bool Vp6Stream::open(const std::string& name)
 		NULL
 		);
 
-	m_tex.create(m_codecCtx->width, m_codecCtx->height);
+	//Fill the texture with a black image
+	sf::Image img;
+	img.create(m_codecCtx->width, m_codecCtx->height);
+	m_tex.loadFromImage(img);
 	m_tex.setSmooth(true);
 	m_status = Stopped;
 	return true;

@@ -80,7 +80,7 @@ add_executable(${PROJ_NAME} ${SOURCE_FILES})
 target_compile_features(${PROJ_NAME} PRIVATE cxx_range_for)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set(ADDITIONAL_LIBS "-lboost_system -lboost_filesystem -lz -lm -lpthread")
+    set(ADDITIONAL_LIBS "-lboost_system -lboost_filesystem -lz -llzma -lva -lbz2 -lm -lpthread")
 endif()
 
 if (OPENSAGE_BUILD_STATIC)
