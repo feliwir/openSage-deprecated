@@ -30,15 +30,19 @@ bool Vp6Stream::open(const std::string& name)
 {
 
 	AVCodecContext* codexCtxOrig = NULL;
-	if (avformat_open_input(&m_fmtCtx, name.c_str(), NULL, NULL) != 0)
+	char errStr[256];
+	unsigned int err = avformat_open_input(&m_fmtCtx, name.c_str(), NULL, NULL);
+	if (err != 0)
+	{
+		av_strerror(err, errStr, 256);
+		std::cout << "Error: " << errStr << std::endl;
 		return false;
+	}
+		
 
 	// Retrieve stream information
 	if (avformat_find_stream_info(m_fmtCtx, NULL)<0)
 		return false;
-
-	// Dump information about file onto standard error
-	av_dump_format(m_fmtCtx, 0, name.c_str(), 0);
 
 	// Find the first video stream
 	for (uint8_t i = 0; i < m_fmtCtx->nb_streams; i++)

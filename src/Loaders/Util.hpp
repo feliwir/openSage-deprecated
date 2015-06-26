@@ -12,6 +12,16 @@ namespace Util
 		return result;
 	}
 
+	template<class T>
+	inline T Read(uint8_t*& buf)
+	{
+		T result;
+		result = *(uint32_t*)buf;
+		buf += sizeof(T);
+		return result;
+	}
+
+
 	inline std::string ReadString(std::ifstream& fin)
 	{
 		std::string result;

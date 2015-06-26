@@ -43,15 +43,11 @@ public:
 public:
 	static inline void AddDialogEvent(std::string& name,std::shared_ptr<DialogEvent> speech)
 	{
-		std::cout << name << std::endl;
-		speech->PrintInfo();
 		gd_dialogs[name] = speech;
 	}
 
 	static inline void AddVideo(std::string& name, std::shared_ptr<Video> video)
 	{
-		std::cout << name << std::endl;
-		video->PrintInfo();
 		gd_videos[name] = video;
 	}
 

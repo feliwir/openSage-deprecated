@@ -2,6 +2,7 @@
 #include "GameData.hpp"
 #include "INI.hpp"
 #include "../Loaders/BigStream.hpp"
+#include "../FileSystem.hpp"
 #include <memory>
 
 using namespace Game;
@@ -18,7 +19,8 @@ std::vector<Handler::LoadInfo> Handler::loadOrder = {
 	Handler::LoadInfo("NewLineLogo", new Handler::CinematicArgs(false)),
 	Handler::LoadInfo("TolkienLogo", new Handler::CinematicArgs(false)),
 	Handler::LoadInfo("Overall_Game_Intro", new Handler::CinematicArgs(true)),
-	Handler::LoadInfo("LoadingRing", new Handler::LoadingScreenArgs("titlescreenuserinterface.jpg"))
+	Handler::LoadInfo("LoadingRing", new Handler::LoadingScreenArgs("titlescreenuserinterface.jpg")),
+	Handler::LoadInfo("MainMenu", new Handler::AptArgs("titlescreenuserinterface.jpg"))
 };
 
 std::shared_ptr<Handler::StateInfo> Handler::cState;
@@ -37,7 +39,14 @@ Handler::LoadingScreenInfo::LoadingScreenInfo(std::shared_ptr<Loaders::Vp6Stream
 {
 	vp6 = video;
 	tex = texture;
+	start = std::chrono::high_resolution_clock::now();
 	state_type = LOADING_SCREEN;
+}
+
+Handler::AptInfo::AptInfo(std::shared_ptr<Loaders::AptFile> aptfile)
+{
+	apt = aptfile;
+	state_type = APT_FILE;
 }
 
 void Handler::Initialize()
@@ -95,6 +104,22 @@ void Handler::GetState()
 			
 		}
 			break;
+		case APT_FILE:
+		{
+			auto args = dynamic_cast<AptArgs*>(l.args);
+
+			std::shared_ptr<Loaders::AptFile> apt = std::make_shared<Loaders::AptFile>();
+			BigStream aptStream;
+			if (!aptStream.open(l.name + ".apt"))
+				continue;
+
+			BigStream constStream;
+			if (!constStream.open(l.name + ".const"))
+				continue;
+			apt->loadFromStream(aptStream, constStream,l.name);
+			cState = std::make_shared<AptInfo>(apt);
+		}
+			break;
 		case LOADING_SCREEN:
 		{
 			auto args = dynamic_cast<LoadingScreenArgs*>(l.args);
@@ -104,6 +129,7 @@ void Handler::GetState()
 				continue;
 
 			std::shared_ptr<Loaders::Vp6Stream> vp6 = std::make_shared<Loaders::Vp6Stream>();
+
 			if (vp6->open(videoDIR + video->filename + ".vp6"))
 			{
 				vp6->play();
@@ -168,6 +194,11 @@ void Handler::Update(sf::RenderWindow& m_window)
 				(float)m_window.getSize().y / sprite.getTextureRect().height*1.3333f);
 
 			m_window.draw(sprite);
+		}
+			break;
+		case APT_FILE:
+		{
+			auto apt_file = std::dynamic_pointer_cast<AptInfo>(cState);
 		}
 			break;
 		}

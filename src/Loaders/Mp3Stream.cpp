@@ -121,8 +121,7 @@ void Mp3Stream::update()
 		len = m_stream.read(m_buf, INBUFF);
 		if (mpg123_feed(m_handle, m_buf, len) == MPG123_DONE)
 			m_isDone = true;
-
-		
+	
 		m_hasData = true;
 	}
 

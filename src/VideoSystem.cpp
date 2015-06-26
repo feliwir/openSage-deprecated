@@ -5,6 +5,7 @@
 
 void VideoSystem::Initialize()
 {
+	av_log_set_level(AV_LOG_QUIET);
 	av_register_all();
 }
 

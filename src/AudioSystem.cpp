@@ -35,7 +35,6 @@ void AudioSystem::UnregisterStream(Loaders::Mp3Stream* stream)
 	m_streams.erase(std::remove(m_streams.begin(), m_streams.end(), stream), m_streams.end());
 }
 
-
 void AudioSystem::Update()
 {
 	while (m_running)

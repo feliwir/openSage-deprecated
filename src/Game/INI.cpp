@@ -49,7 +49,7 @@ bool INI::Parse(const std::string& content)
 
 				if (it == sections.end())
 				{
-					std::cout << "Unknown section in line: " << n << std::endl;
+					//std::cout << "Unknown section in line: " << n << std::endl;
 				}
 				else 
 				{
@@ -119,7 +119,6 @@ bool INI::Parse(const std::string& content)
 				line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
 				pos = line.find('=');
 				std::string paramStr = line.substr(0, pos);
-				std::cout << paramStr << std::endl;
 				auto it = parameters.find(paramStr);
 
 				if (it == parameters.end())

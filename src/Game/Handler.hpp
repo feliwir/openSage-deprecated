@@ -1,8 +1,10 @@
 #pragma once
 #include <string>
 #include <vector> 
+#include <chrono>
 #include "../Loaders/Mp3Stream.hpp"
 #include "../Loaders/Vp6Stream.hpp"
+#include "../Loaders/AptFile.hpp"
 
 namespace Game
 {
@@ -12,7 +14,7 @@ namespace Game
 		enum GameState
 		{
 			CINEMATIC		= 0,
-			APT				= 1,
+			APT_FILE		= 1,
 			LOADING_SCREEN	= 2,
 		};
 
@@ -85,7 +87,10 @@ namespace Game
 		{
 			inline bool IsDone()
 			{
-				return false;
+				if ((std::chrono::high_resolution_clock::now() - start) > std::chrono::seconds(1))
+					return true;
+				else
+					return false;
 			};
 
 			LoadingScreenInfo(std::shared_ptr<Loaders::Vp6Stream> video, std::shared_ptr<sf::Texture> tex);
@@ -102,6 +107,20 @@ namespace Game
 		private:
 			std::shared_ptr<Loaders::Vp6Stream> vp6;
 			std::shared_ptr<sf::Texture> tex;
+			std::chrono::high_resolution_clock::time_point start;
+		};
+
+		struct AptInfo : public StateInfo
+		{
+			inline bool IsDone()
+			{
+				return false;
+			};
+
+			AptInfo(std::shared_ptr<Loaders::AptFile> apt);
+
+		private:
+			std::shared_ptr<Loaders::AptFile> apt;
 		};
 		
 		struct CinematicArgs : public StateArgs
@@ -136,6 +155,22 @@ namespace Game
 			}
 		protected:
 			std::string imgName;
+		};
+
+		struct AptArgs : public StateArgs
+		{
+			AptArgs(std::string name)
+			{
+				m_state = APT_FILE;
+				aptName = name;
+			}
+
+			inline std::string GetAptName()
+			{
+				return aptName;
+			}
+		protected:
+			std::string aptName;
 		};
 
 		struct LoadInfo
