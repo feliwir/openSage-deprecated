@@ -406,6 +406,7 @@ namespace Loaders
 		std::shared_ptr<AptConstData> m_data;
 		std::shared_ptr<OutputMovie> m_movie;
 		std::map<uint32_t, GeometryEntry> m_geometry;
+		std::map<uint32_t,uint32_t> m_dat;
 		uint32_t m_frame;
 	};
 }

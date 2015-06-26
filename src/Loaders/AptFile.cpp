@@ -1,14 +1,16 @@
 #include "AptFile.hpp"
 #include "Util.hpp"
+#include "BigStream.hpp"
+#include <iostream>
 
 using namespace Loaders;
 using namespace Util;
 
 #define STRLENGTH(x) (4 * ((((uint32_t)strlen(x) + 1) + 3)/4))
 #define GETALIGN(x) ((4 * ((x + 3) / 4)) - x)
-#define ALIGN(x) x = ((uint8_t *)(4 * ((((uint32_t)x) + 3) / 4)))
+#define ALIGN(x) x = ((uint8_t *)(4 * ((((uintptr_t)x) + 3) / 4)))
 #define B(x) x?"true":"false"
-#define add(x) *((uint8_t **)&x) += (uint32_t)aptBuf; 
+#define add(x) *((uint8_t **)&x) += (uintptr_t)aptBuf; 
 
 bool AptFile::loadFromStream(sf::InputStream& aptStream, sf::InputStream& constStream,const std::string& name)
 {
@@ -39,7 +41,7 @@ bool AptFile::loadFromStream(sf::InputStream& aptStream, sf::InputStream& constS
 		if (m_data->items[i]->type == TYPE_STRING)
 		{
 			//read the string from the position specified
-			m_data->items[i]->strvalue = (char *)(constBuf + (uint32_t)aci->strvalue);
+			m_data->items[i]->strvalue = (char *)(constBuf + (uintptr_t)aci->strvalue);
 		}
 		else
 		{
@@ -48,6 +50,7 @@ bool AptFile::loadFromStream(sf::InputStream& aptStream, sf::InputStream& constS
 		aci++;
 	}
 
+	std::cout << "Parsed " << name << ".const";
 	delete[] constBuf;
 
 	m_movie = std::shared_ptr<OutputMovie>((OutputMovie *)(aptBuf + m_data->aptdataoffset));
@@ -268,6 +271,15 @@ bool AptFile::loadFromStream(sf::InputStream& aptStream, sf::InputStream& constS
 			}
 		}
 	}
+	std::cout << "Parsed " << name << ".apt";
+	delete[] aptBuf;
+
+	BigStream datStream;
+	if(!datStream.open(name+".dat"))
+	{
+		return true;
+	}
+	std::cout << "Parsed " << name << ".dat";
 	return true;
 }
 
