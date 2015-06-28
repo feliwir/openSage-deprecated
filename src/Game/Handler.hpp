@@ -119,6 +119,10 @@ namespace Game
 
 			AptInfo(std::shared_ptr<Loaders::AptFile> apt);
 
+			inline std::shared_ptr<Loaders::AptFile> GetApt()
+			{
+				return apt;
+			}
 		private:
 			std::shared_ptr<Loaders::AptFile> apt;
 		};

@@ -1,6 +1,9 @@
 #pragma once
 #include <fstream>
 #include <stdint.h>
+#include <string>
+#include <sstream>
+#include <vector>
 
 namespace Util
 {
@@ -43,5 +46,4 @@ namespace Util
 		fin.read((char*)buf, size);
 		return buf;
 	}
-
 }

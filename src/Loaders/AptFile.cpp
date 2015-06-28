@@ -1,7 +1,9 @@
+#include <iostream>
+#include <string>
 #include "AptFile.hpp"
 #include "Util.hpp"
 #include "BigStream.hpp"
-#include <iostream>
+#include "../Game/INI.hpp"
 
 using namespace Loaders;
 using namespace Util;
@@ -9,14 +11,13 @@ using namespace Util;
 #define STRLENGTH(x) (4 * ((((uint32_t)strlen(x) + 1) + 3)/4))
 #define GETALIGN(x) ((4 * ((x + 3) / 4)) - x)
 #define ALIGN(x) x = ((uint8_t *)(4 * ((((uintptr_t)x) + 3) / 4)))
-#define B(x) x?"true":"false"
-#define add(x) *((uint8_t **)&x) += (uintptr_t)aptBuf; 
+#define add(x) *((uint8_t **)&x) += (uintptr_t)m_aptBuf; 
 
 bool AptFile::loadFromStream(sf::InputStream& aptStream, sf::InputStream& constStream,const std::string& name)
 {
-	uint8_t* aptBuf = new uint8_t[aptStream.getSize()];
+	m_aptBuf = new uint8_t[aptStream.getSize()];
 	uint8_t* constBuf = new uint8_t[constStream.getSize()];
-	aptStream.read(aptBuf, aptStream.getSize());
+	aptStream.read(m_aptBuf, aptStream.getSize());
 	constStream.read(constBuf, constStream.getSize());
 
 	m_data = std::make_shared<AptConstData>();
@@ -53,7 +54,7 @@ bool AptFile::loadFromStream(sf::InputStream& aptStream, sf::InputStream& constS
 	std::cout << "Parsed " << name << ".const";
 	delete[] constBuf;
 
-	m_movie = std::shared_ptr<OutputMovie>((OutputMovie *)(aptBuf + m_data->aptdataoffset));
+	m_movie = std::shared_ptr<OutputMovie>((OutputMovie *)(m_aptBuf + m_data->aptdataoffset));
 	add(m_movie->characters);
 	add(m_movie->exports);
 	add(m_movie->imports);
@@ -132,6 +133,8 @@ bool AptFile::loadFromStream(sf::InputStream& aptStream, sf::InputStream& constS
 			case SHAPE:
 			{
 				Shape *sh = (Shape *)m_movie->characters[ch];
+				std::string runame = name + "_geometry/" + std::to_string(sh->geometry) + ".ru";
+				m_geometry[sh->geometry] = ParseGeometry(runame);
 				
 			}
 				break;
@@ -271,25 +274,233 @@ bool AptFile::loadFromStream(sf::InputStream& aptStream, sf::InputStream& constS
 			}
 		}
 	}
-	std::cout << "Parsed " << name << ".apt";
-	delete[] aptBuf;
+	std::cout << "Parsed " << name << ".apt" << std::endl;
 
 	BigStream datStream;
 	if(!datStream.open(name+".dat"))
 	{
+		//no dat file present
 		return true;
 	}
-	std::cout << "Parsed " << name << ".dat";
+	std::cout << "Parsed " << name << ".dat" << std::endl;
+	uint8_t* datBuf = new uint8_t[datStream.getSize()+1];
+	datStream.read(datBuf, datStream.getSize());
+	datBuf[datStream.getSize()] = 0;
+
+	std::string content = (char*)datBuf;
+	std::istringstream iss(content);
+	std::string line,strInt;
+	int n1 = 0, n2 = 0, pos;
+	while (std::getline(iss, line))
+	{
+		line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+		line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
+		if (line[0] == ';')
+			continue;
+
+		pos = line.find("->");
+		strInt = line.substr(0, pos);
+		n1 = std::atoi(strInt.c_str());
+		strInt = line.substr(pos+2, line.size());
+		n2 = std::atoi(strInt.c_str());
+		m_dat[n1] = n2;
+	}
+
+	delete[] datBuf;
+
+	for (auto& i : m_dat)
+	{
+		//insert texture if not in already
+		if (m_textures.find(i.second) == m_textures.end())
+		{
+			BigStream texStream;
+			if (!texStream.open("art/Textures/apt_" + name + "_"+std::to_string(i.second) + ".tga"))
+				continue;
+
+			sf::Image img;
+			img.loadFromStream(texStream);
+
+			std::shared_ptr<sf::Texture> tex = std::make_shared <sf::Texture>();
+			tex->loadFromImage(img);
+			m_textures[i.second] = tex;
+		}
+	}
 	return true;
+}
+
+AptFile::GeometryEntry AptFile::ParseGeometry(const std::string& name)
+{
+	GeometryEntry entry;
+	BigStream ruStream;
+
+	if (!ruStream.open(name))
+	{
+		std::cout << "Failed to load ru file: " << name << std::endl;
+		//no ru file present
+		return entry;
+	}
+
+	uint8_t* ruBuf = new uint8_t[ruStream.getSize() + 1];
+	ruStream.read(ruBuf, ruStream.getSize());
+	ruBuf[ruStream.getSize()] = 0;
+
+	std::string content = (char*)ruBuf;
+	std::vector<std::string> params;
+	std::istringstream iss(content);
+	std::string line;
+	std::string param;
+	int n1 = 0, n2 = 0, pos;
+	while (std::getline(iss, line))
+	{
+		line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+		line.erase(0, line.find_first_not_of(" \t"));
+		if (line[0] == ';')
+			continue;
+
+		param = line.substr(1, line.size());
+		param.erase(std::remove(param.begin(), param.end(), ' '), param.end());
+		
+		std::stringstream splitter(param);
+		while (std::getline(splitter, param,':'))
+		{
+			params.push_back(param);
+		}
+
+		switch (line[0])
+		{
+			case 'c':
+			{
+				
+			}
+				break;
+			case 's':
+			{
+				if (params[0] == "tc")
+				{
+					TextureStyle ts;
+					ts.red = std::atoi(params[1].c_str());
+					ts.green = std::atoi(params[2].c_str());
+					ts.blue = std::atoi(params[3].c_str());
+					ts.alpha = std::atoi(params[4].c_str());
+					ts.TextureCharacter = std::atoi(params[5].c_str());
+					ts.rotateandscale ={std::atof(params[6].c_str()), std::atof(params[7].c_str()),
+										std::atof(params[8].c_str()), std::atof(params[9].c_str())};
+					ts.translate = {std::atof(params[10].c_str()), std::atof(params[11].c_str())};
+					entry.texturestyles.push_back(ts);
+				}
+				else if (params[0] == "s")
+				{
+					SolidStyle s;
+					s.red = std::atoi(params[1].c_str());
+					s.green = std::atoi(params[2].c_str());
+					s.blue = std::atoi(params[3].c_str());
+					s.alpha = std::atoi(params[4].c_str());
+					entry.solidstyles.push_back(s);
+				}
+			}
+				break;
+			case 't':
+			{
+				Tri t;
+				t.v1 = { std::atof(params[0].c_str()), std::atof(params[1].c_str())};
+				t.v2 = { std::atof(params[2].c_str()), std::atof(params[3].c_str())};
+				t.v3 = { std::atof(params[4].c_str()), std::atof(params[5].c_str())};
+				entry.tris.push_back(t);
+			}
+				break;
+			case 'l':
+			{
+				Line l;
+				l.v1 = { std::atof(params[0].c_str()), std::atof(params[1].c_str())};
+				l.v2 = { std::atof(params[2].c_str()), std::atof(params[3].c_str())};
+				entry.lines.push_back(l);
+			}
+		}
+
+		params.clear();
+	}
+
+	entry.tricount = entry.tris.size();
+	entry.linecount = entry.lines.size();
+	entry.texturestylecount = entry.texturestyles.size();
+	entry.solidstylecount = entry.solidstyles.size();
+	entry.linestylecount = entry.linestyles.size();
+
+	return entry;
 }
 
 void AptFile::Update()
 {
-	++m_frame;
+	uint32_t currentFrame = m_frame % m_movie->framecount;
 
+	for (uint32_t i = 0; i < m_movie->frames[currentFrame].frameitemcount;++i)
+	{
+		switch (m_movie->frames[currentFrame].frameitems[i]->type)
+		{
+		case PLACEOBJECT:
+		{
+			auto po = static_cast<OutputPlaceObject*>(m_movie->frames[currentFrame].frameitems[i]);
+			m_objects[po->depth] = po;
+		}
+			break;
+		case REMOVEOBJECT:
+		{
+			auto ro = static_cast<RemoveObject*>(m_movie->frames[currentFrame].frameitems[i]);
+			m_objects.erase(ro->depth);
+		}
+			break;
+		case BACKGROUNDCOLOR:
+		{
+			auto bg = static_cast<BackgroundColor*>(m_movie->frames[currentFrame].frameitems[i]);
+			m_bgColor = sf::Color(bg->red, bg->green, bg->blue, bg->alpha);
+		}
+			break;
+		case FRAMELABEL:
+		{
+			auto fl = static_cast<FrameLabel*>(m_movie->frames[currentFrame].frameitems[i]);
+			std::cout << "Framelabel: " << fl->label << std::endl;
+		}
+			break;
+		}
+	}
+
+	++m_frame;
 }
 
-void Render(sf::RenderWindow& win)
+void AptFile::Render(sf::RenderWindow& win)
 {
+	win.clear(m_bgColor);
 
+	for (auto& o : m_objects)
+	{
+		auto po = o.second;
+		auto ch = m_movie->characters[po->character];
+
+		switch (ch->type)
+		{
+		case SHAPE:
+		{
+			auto shape = static_cast<Shape*>(ch);
+			auto geo = shape->geometry;
+		}
+			break;
+		case SPRITE:
+		{
+			auto sprite = static_cast<OutputSprite*>(ch);
+		}
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+AptFile::~AptFile()
+{
+	if (m_aptBuf)
+		delete[] m_aptBuf;
+}
+
+AptFile::AptFile() : m_aptBuf(nullptr), m_frame(0)
+{
 }

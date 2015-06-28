@@ -1,8 +1,9 @@
 #pragma once
 #include <stdint.h>
-#include <sstream>
 #include <vector>
 #include <memory>
+#include <string>
+#include <sstream>
 #include <SFML/System.hpp>
 #include <SFML/Graphics.hpp>
 #include "BigStream.hpp"
@@ -117,15 +118,15 @@ namespace Loaders
 
 		struct GeometryEntry {
 			uint32_t tricount;
-			std::vector<Tri *> tris;
+			std::vector<Tri> tris;
 			uint32_t linecount;
-			std::vector <Line *> lines;
+			std::vector <Line> lines;
 			uint32_t solidstylecount;
-			std::vector <SolidStyle *> solidstyles;
+			std::vector <SolidStyle> solidstyles;
 			uint32_t linestylecount;
-			std::vector <LineStyle *> linestyles;
+			std::vector <LineStyle> linestyles;
 			uint32_t texturestylecount;
-			std::vector <TextureStyle *> texturestyles;
+			std::vector <TextureStyle> texturestyles;
 		};
 
 		struct Geometry {
@@ -369,7 +370,10 @@ namespace Loaders
 		};
 
 		struct BackgroundColor : public FrameItem {
-			uint32_t color;
+			uint8_t red;
+			uint8_t green;
+			uint8_t blue;
+			uint8_t alpha;
 		};
 
 		struct OutputInitAction : public FrameItem {
@@ -398,15 +402,23 @@ namespace Loaders
 		};
 #pragma endregion
 
+	private:
+		GeometryEntry ParseGeometry(const std::string& name);
 	public:
 		bool loadFromStream(sf::InputStream& aptStream, sf::InputStream& constStream, const std::string& name);
 		void Update();
 		void Render(sf::RenderWindow& win);
+		~AptFile();
+		AptFile();
 	private:
 		std::shared_ptr<AptConstData> m_data;
 		std::shared_ptr<OutputMovie> m_movie;
 		std::map<uint32_t, GeometryEntry> m_geometry;
 		std::map<uint32_t,uint32_t> m_dat;
+		std::map<uint32_t,std::shared_ptr<sf::Texture>> m_textures;
+		std::map<uint32_t,OutputPlaceObject*> m_objects;
+		uint8_t* m_aptBuf;
 		uint32_t m_frame;
+		sf::Color m_bgColor;
 	};
 }

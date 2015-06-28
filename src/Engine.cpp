@@ -33,9 +33,7 @@ void Engine::Run()
 	//m_window.create(sf::VideoMode(1920, 1080), "openSAGE", sf::Style::Fullscreen);
 
 	while (m_window.isOpen())
-	{
-		m_window.clear();
-		
+	{	
         sf::Event event;
         while (m_window.pollEvent(event))
         {

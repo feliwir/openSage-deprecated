@@ -15,10 +15,10 @@ const std::string Handler::speechDIR = "data/audio/speech/";
 const std::string Handler::compiledtexDIR = "art/compiledtextures/";
 
 std::vector<Handler::LoadInfo> Handler::loadOrder = {
-	Handler::LoadInfo("EALogoMovie", new Handler::CinematicArgs(false)),
-	Handler::LoadInfo("NewLineLogo", new Handler::CinematicArgs(false)),
-	Handler::LoadInfo("TolkienLogo", new Handler::CinematicArgs(false)),
-	Handler::LoadInfo("Overall_Game_Intro", new Handler::CinematicArgs(true)),
+	//Handler::LoadInfo("EALogoMovie", new Handler::CinematicArgs(false)),
+	//Handler::LoadInfo("NewLineLogo", new Handler::CinematicArgs(false)),
+	//Handler::LoadInfo("TolkienLogo", new Handler::CinematicArgs(false)),
+	//Handler::LoadInfo("Overall_Game_Intro", new Handler::CinematicArgs(true)),
 	Handler::LoadInfo("LoadingRing", new Handler::LoadingScreenArgs("titlescreenuserinterface.jpg")),
 	Handler::LoadInfo("MainMenu", new Handler::AptArgs("titlescreenuserinterface.jpg"))
 };
@@ -172,6 +172,7 @@ void Handler::Update(sf::RenderWindow& m_window)
 		{
 		case CINEMATIC:
 		{
+			m_window.clear();
 			auto cinematic = std::dynamic_pointer_cast<CinematicInfo>(cState);			
 			auto sprite = sf::Sprite(cinematic->GetVP6()->GetTexture());
 			sprite.setScale((float)m_window.getSize().x / sprite.getTextureRect().width,
@@ -188,6 +189,7 @@ void Handler::Update(sf::RenderWindow& m_window)
 			break;
 		case LOADING_SCREEN:
 		{
+			m_window.clear();
 			auto loading_screen = std::dynamic_pointer_cast<LoadingScreenInfo>(cState);
 			auto sprite = sf::Sprite(*loading_screen->GetTex());
 			sprite.setScale((float)m_window.getSize().x / sprite.getTextureRect().width,
@@ -199,6 +201,9 @@ void Handler::Update(sf::RenderWindow& m_window)
 		case APT_FILE:
 		{
 			auto apt_file = std::dynamic_pointer_cast<AptInfo>(cState);
+			auto apt = apt_file->GetApt();
+			apt->Update();
+			apt->Render(m_window);
 		}
 			break;
 		}
