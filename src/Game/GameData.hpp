@@ -41,7 +41,7 @@ public:
 
 	};
 public:
-	static inline void AddDialogEvent(std::string& name,std::shared_ptr<DialogEvent> speech)
+	static inline void AddDialogEvent(std::string& name, std::shared_ptr<DialogEvent> speech)
 	{
 		gd_dialogs[name] = speech;
 	}

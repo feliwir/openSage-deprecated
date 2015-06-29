@@ -19,7 +19,7 @@ namespace Util
 	inline T Read(uint8_t*& buf)
 	{
 		T result;
-		result = *(uint32_t*)buf;
+		result = *(T*)buf;
 		buf += sizeof(T);
 		return result;
 	}
@@ -29,7 +29,7 @@ namespace Util
 	{
 		std::string result;
 		char c;
-		while ((c=fin.get()))
+		while ((c = fin.get()))
 			result.push_back(c);
 
 		return result;
@@ -40,7 +40,7 @@ namespace Util
 		v = (v << 24) | (v << 8 & 0xff0000) | (v >> 8 & 0xff00) | (v >> 24);
 	}
 
-	inline uint8_t* ReadBuffer(std::ifstream& fin,uint32_t size)
+	inline uint8_t* ReadBuffer(std::ifstream& fin, uint32_t size)
 	{
 		uint8_t* buf = new uint8_t[size];
 		fin.read((char*)buf, size);

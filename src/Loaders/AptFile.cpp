@@ -3,277 +3,52 @@
 #include "AptFile.hpp"
 #include "Util.hpp"
 #include "BigStream.hpp"
-#include "../Game/INI.hpp"
+#include "../Game/ActionScript.hpp"
 
 using namespace Loaders;
 using namespace Util;
 
-#define STRLENGTH(x) (4 * ((((uint32_t)strlen(x) + 1) + 3)/4))
-#define GETALIGN(x) ((4 * ((x + 3) / 4)) - x)
-#define ALIGN(x) x = ((uint8_t *)(4 * ((((uintptr_t)x) + 3) / 4)))
-#define add(x) *((uint8_t **)&x) += (uintptr_t)m_aptBuf; 
-
 bool AptFile::loadFromStream(sf::InputStream& aptStream, sf::InputStream& constStream,const std::string& name)
 {
-	m_aptBuf = new uint8_t[aptStream.getSize()];
+	
 	uint8_t* constBuf = new uint8_t[constStream.getSize()];
-	aptStream.read(m_aptBuf, aptStream.getSize());
 	constStream.read(constBuf, constStream.getSize());
-
-	m_data = std::make_shared<AptConstData>();
 
 	//now start parsing by setting our iter to the start of the aptbuffer
 	uint8_t* iter = constBuf;
 	//skip the first 20 bytes
 	iter += 0x14;
-	m_data->aptdataoffset = Read<uint32_t>(iter);
-	m_data->itemcount = Read<uint32_t>(iter);
+	m_data.aptdataoffset = Read<uint32_t>(iter);
+	m_data.itemcount = Read<uint32_t>(iter);
 	//skip 4 bytes now
 	iter += 4;
 
-	AptConstItem *aci = (AptConstItem *)iter;
-	//8 bytes per const item
-	iter += m_data->itemcount * 8;
 	//now read each item
-	for (uint32_t i = 0; i < m_data->itemcount; ++i)
+	for (uint32_t i = 0; i < m_data.itemcount; ++i)
 	{
-		m_data->items.push_back(std::make_shared<AptConstItem>());
-		m_data->items[i]->type = aci->type;
-		if (m_data->items[i]->type == TYPE_STRING)
+		m_data.items.push_back(ConstItem());
+		m_data.items[i].type = static_cast<ConstItemType>(Read<uint32_t>(iter));
+		auto value  = Read<uint32_t>(iter);
+		if (m_data.items[i].type == TYPE_STRING)
 		{
 			//read the string from the position specified
-			m_data->items[i]->strvalue = (char *)(constBuf + (uintptr_t)aci->strvalue);
+			m_data.items[i].strvalue = (char *)(constBuf + (uintptr_t)value);
 		}
 		else
 		{
-			m_data->items[i]->numvalue = aci->numvalue;
+			m_data.items[i].numvalue = value;
 		}
-		aci++;
 	}
 
 	std::cout << "Parsed " << name << ".const";
 	delete[] constBuf;
 
-	m_movie = std::shared_ptr<OutputMovie>((OutputMovie *)(m_aptBuf + m_data->aptdataoffset));
-	add(m_movie->characters);
-	add(m_movie->exports);
-	add(m_movie->imports);
-	add(m_movie->frames);
+	uint8_t* aptBuf = new uint8_t[aptStream.getSize()];
+	aptStream.read(aptBuf, aptStream.getSize());
+	
+	iter = aptBuf + m_data.aptdataoffset;
+	ParseCharacter(iter,aptBuf);
 
-	for (uint32_t i = 0; i < m_movie->importcount; i++)
-	{
-		add(m_movie->imports[i].movie);
-		add(m_movie->imports[i].name);
-	}
-
-	for (uint32_t i = 0; i < m_movie->exportcount; i++)
-	{
-		add(m_movie->exports[i].name);
-	}
-
-	for (uint32_t i = 0; i < m_movie->framecount; i++)
-	{
-		add(m_movie->frames[i].frameitems);
-
-		for (uint32_t j = 0; j < m_movie->frames[i].frameitemcount; j++)
-		{
-			add(m_movie->frames[i].frameitems[j]);
-			switch (m_movie->frames[i].frameitems[j]->type)
-			{
-			case ACTION:
-			{
-				OutputAction *oa = (OutputAction *)m_movie->frames[i].frameitems[j];
-				add(oa->actionbytes);
-			}
-				break;
-			case FRAMELABEL:
-			{
-				FrameLabel *fl = (FrameLabel *)m_movie->frames[i].frameitems[j];
-				add(fl->label);
-			}
-				break;
-			case PLACEOBJECT:
-			{
-				OutputPlaceObject *po = (OutputPlaceObject *)m_movie->frames[i].frameitems[j];
-				//set all attributes of this node
-
-				if (po->name)
-				{
-					add(po->name);
-				}
-				if (po->poa)
-				{
-					add(po->poa);
-					add(po->poa->actions);
-
-					for (uint32_t k = 0; k < po->poa->clipactioncount; k++)
-					{
-						add(po->poa->actions[k].actiondata);
-					}
-				}
-			}
-				break;
-			case INITACTION:
-			{
-				OutputInitAction *oa = (OutputInitAction *)m_movie->frames[i].frameitems[j];
-				add(oa->actionbytes);
-			}
-				break;
-			}
-		}
-	}
-
-	for (uint32_t ch = 0; ch < m_movie->charactercount; ch++)
-	{
-		if (m_movie->characters[ch])
-		{
-			add(m_movie->characters[ch]);
-			switch (m_movie->characters[ch]->type)
-			{
-			case SHAPE:
-			{
-				Shape *sh = (Shape *)m_movie->characters[ch];
-				std::string runame = name + "_geometry/" + std::to_string(sh->geometry) + ".ru";
-				m_geometry[sh->geometry] = ParseGeometry(runame);
-				
-			}
-				break;
-			case EDITTEXT:
-			{
-				EditText *et = (EditText *)m_movie->characters[ch];
-							
-				if (et->text)
-				{
-					add(et->text);
-				}
-				if (et->variable)
-				{
-					add(et->variable);
-				}
-			}
-				break;
-			case FONT:
-			{
-				OutputFont *fo = (OutputFont *)m_movie->characters[ch];
-				add(fo->name);
-
-				if (fo->glyphcount)
-				{
-					add(fo->glyphs);
-				}
-			}
-				break;
-			case BUTTON:
-			{
-				OutputButton *ob = (OutputButton *)m_movie->characters[ch];
-				if (ob->trianglecount)
-				{
-					add(ob->vertexes);
-					add(ob->triangles);							 
-				}
-				if (ob->recordcount)
-				{
-					add(ob->buttonrecords);
-				}
-				if (ob->buttonactioncount)
-				{
-					add(ob->buttonactionrecords);
-
-					for (uint32_t i = 0; i < ob->buttonactioncount; i++)
-					{
-						add(ob->buttonactionrecords[i].actiondata);
-					}
-				}
-			}
-				break;
-			case SPRITE:
-			{
-				OutputSprite *sp = (OutputSprite *)m_movie->characters[ch];
-
-				add(sp->frames);
-				if (sp->framecount)
-				{
-					for (uint32_t i = 0; i < sp->framecount; i++)
-					{
-						add(sp->frames[i].frameitems);
-
-						for (uint32_t j = 0; j < sp->frames[i].frameitemcount; j++)
-						{
-							add(sp->frames[i].frameitems[j]);
-							switch (sp->frames[i].frameitems[j]->type)
-							{
-								case ACTION:
-								{
-									OutputAction *oa = (OutputAction *)sp->frames[i].frameitems[j];
-									add(oa->actionbytes);
-								}
-									break;
-								case FRAMELABEL:
-								{
-									FrameLabel *fl = (FrameLabel *)sp->frames[i].frameitems[j];
-									add(fl->label);
-								}
-									break;
-								case PLACEOBJECT:
-								{
-									OutputPlaceObject *po = (OutputPlaceObject *)sp->frames[i].frameitems[j];
-
-									if (po->name)
-									{
-										add(po->name);
-									}
-									if (po->poa)
-									{
-										add(po->poa);
-										add(po->poa->actions);
-
-										for (uint32_t k = 0; k < po->poa->clipactioncount; k++)
-										{
-											add(po->poa->actions[k].actiondata);
-
-										}
-									}
-								}
-									break;
-								case INITACTION:
-								{
-									OutputInitAction *oa = (OutputInitAction *)sp->frames[i].frameitems[j];
-									add(oa->actionbytes);
-								}
-									break;
-							}
-						}
-					}
-				}
-			}
-				break;
-			case TEXT:
-			{
-				OutputText *te = (OutputText *)m_movie->characters[ch];
-
-				if (te->recordcount)
-				{
-					add(te->records);
-					for (uint32_t i = 0; i < te->recordcount; i++)
-					{
-						if (te->records[i].glyphcount)
-						{
-							add(te->records[i].glyphs);
-						}
-					}
-				}
-			}
-				break;
-			case IMAGE:
-			{
-				Image *img = (Image *)m_movie->characters[ch];
-			}
-				break;
-			default:
-				break;
-			}
-		}
-	}
 	std::cout << "Parsed " << name << ".apt" << std::endl;
 
 	BigStream datStream;
@@ -429,78 +204,114 @@ AptFile::GeometryEntry AptFile::ParseGeometry(const std::string& name)
 	return entry;
 }
 
-void AptFile::Update()
+std::shared_ptr<AptFile::Character> AptFile::ParseCharacter(uint8_t*& buf,uint8_t* base)
 {
-	uint32_t currentFrame = m_frame % m_movie->framecount;
-
-	for (uint32_t i = 0; i < m_movie->frames[currentFrame].frameitemcount;++i)
+	auto type = Read<uint32_t>(buf);
+	auto signature = Read<uint32_t>(buf);
+	std::shared_ptr<Character> result;
+	
+	switch (type)
 	{
-		switch (m_movie->frames[currentFrame].frameitems[i]->type)
+		case MOVIE:
 		{
-		case PLACEOBJECT:
+		auto movie = std::make_shared<Movie>();
+		movie->type = type;
+		movie->signature = signature;
+		movie->framecount = Read<uint32_t>(buf);
+
+		auto frameOffset = Read<uint32_t>(buf)+base;
+		for (auto i = 0; i < movie->framecount; ++i)
 		{
-			auto po = static_cast<OutputPlaceObject*>(m_movie->frames[currentFrame].frameitems[i]);
-			m_objects[po->depth] = po;
+			Frame f;
+			f.frameitemcount = Read<uint32_t>(frameOffset);
+			auto itemsOffset = Read<uint32_t>(frameOffset)+base;
+			for (auto j = 0; j < f.frameitemcount;  ++j)
+			{
+				auto itemOffset = Read<uint32_t>(itemsOffset)+base;
+				f.frameitems.push_back(ParseFrameItem(itemOffset, base));
+			}
 		}
-			break;
-		case REMOVEOBJECT:
-		{
-			auto ro = static_cast<RemoveObject*>(m_movie->frames[currentFrame].frameitems[i]);
-			m_objects.erase(ro->depth);
+
+		result = movie;
 		}
-			break;
-		case BACKGROUNDCOLOR:
-		{
-			auto bg = static_cast<BackgroundColor*>(m_movie->frames[currentFrame].frameitems[i]);
-			m_bgColor = sf::Color(bg->red, bg->green, bg->blue, bg->alpha);
-		}
-			break;
-		case FRAMELABEL:
-		{
-			auto fl = static_cast<FrameLabel*>(m_movie->frames[currentFrame].frameitems[i]);
-			std::cout << "Framelabel: " << fl->label << std::endl;
-		}
-			break;
-		}
+		break;
 	}
 
-	++m_frame;
+	return result;
+}
+
+std::shared_ptr<AptFile::FrameItem> AptFile::ParseFrameItem(uint8_t*& buf, uint8_t* base)
+{
+	auto type = Read<uint32_t>(buf);
+	std::shared_ptr<FrameItem> result;
+
+	switch (type)
+	{
+	case ACTION:
+	{
+		auto action = std::make_shared<Action>();
+		action->type = type;
+		auto actionOffset = base + Read<uint32_t>(buf);
+		auto actionSize = Script::AS::GetBytecodeSize(actionOffset);
+		action->bytecode = new uint8_t[actionSize];
+		std::copy(actionOffset, actionOffset + actionSize, action->bytecode);
+		result = action;
+	}
+		break;
+	case PLACEOBJECT:
+	{
+		auto po = std::make_shared<PlaceObject>();
+		po->type = type;
+		po->flags =	Read<uint32_t>(buf);
+		po->depth =	Read<int32_t>(buf);
+		po->character = Read<int32_t>(buf);
+		po->rotateandscale = Read<Transform>(buf);
+		po->translate = Read<Vector2>(buf);
+		po->red = Read<uint8_t>(buf);
+		po->green = Read<uint8_t>(buf);
+		po->blue = Read<uint8_t>(buf);
+		po->alpha = Read<uint8_t>(buf);
+		buf += 4;
+		po->ratio = Read<float>(buf);
+		char* name = reinterpret_cast<char*>(Read<uint32_t>(buf)+base);
+		po->name = std::string(name);
+		po->clipdepth = Read<uint32_t>(buf);
+		auto poaOffset = Read<uint32_t>(buf) +base;
+		po->poa.clipactioncount = Read<uint32_t>(poaOffset);
+		auto poaOffset2 = Read<uint32_t>(poaOffset) +base;
+	}
+		break;
+	case BACKGROUNDCOLOR:
+	{
+		auto bgcolor = std::make_shared<BackgroundColor>();
+		bgcolor->type = type;
+		bgcolor->red = Read<uint8_t>(buf);
+		bgcolor->green = Read<uint8_t>(buf);
+		bgcolor->blue = Read<uint8_t>(buf);
+		bgcolor->alpha = Read<uint8_t>(buf);
+		result = bgcolor;
+	}
+		break;
+	}
+
+	return result;
+}
+
+void AptFile::Update()
+{
+	
 }
 
 void AptFile::Render(sf::RenderWindow& win)
 {
-	win.clear(m_bgColor);
 
-	for (auto& o : m_objects)
-	{
-		auto po = o.second;
-		auto ch = m_movie->characters[po->character];
-
-		switch (ch->type)
-		{
-		case SHAPE:
-		{
-			auto shape = static_cast<Shape*>(ch);
-			auto geo = shape->geometry;
-		}
-			break;
-		case SPRITE:
-		{
-			auto sprite = static_cast<OutputSprite*>(ch);
-		}
-			break;
-		default:
-			break;
-		}
-	}
 }
 
 AptFile::~AptFile()
 {
-	if (m_aptBuf)
-		delete[] m_aptBuf;
+
 }
 
-AptFile::AptFile() : m_aptBuf(nullptr), m_frame(0)
+AptFile::AptFile() :  m_frame(0)
 {
 }

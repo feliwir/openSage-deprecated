@@ -20,7 +20,7 @@ std::vector<Handler::LoadInfo> Handler::loadOrder = {
 	//Handler::LoadInfo("TolkienLogo", new Handler::CinematicArgs(false)),
 	//Handler::LoadInfo("Overall_Game_Intro", new Handler::CinematicArgs(true)),
 	Handler::LoadInfo("LoadingRing", new Handler::LoadingScreenArgs("titlescreenuserinterface.jpg")),
-	Handler::LoadInfo("MainMenu", new Handler::AptArgs("titlescreenuserinterface.jpg"))
+	Handler::LoadInfo("MainMenu", new Handler::AptArgs(""))
 };
 
 std::shared_ptr<Handler::StateInfo> Handler::cState;

@@ -13,9 +13,9 @@ namespace Game
 	private:
 		enum GameState
 		{
-			CINEMATIC		= 0,
-			APT_FILE		= 1,
-			LOADING_SCREEN	= 2,
+			CINEMATIC = 0,
+			APT_FILE = 1,
+			LOADING_SCREEN = 2,
 		};
 
 		struct StateArgs
@@ -52,11 +52,11 @@ namespace Game
 				{
 					return true;
 				}
-					
+
 				return false;
 			};
 
-			CinematicInfo(std::shared_ptr<Loaders::Vp6Stream> video, std::shared_ptr<Loaders::Mp3Stream> audio,bool skippable = false);
+			CinematicInfo(std::shared_ptr<Loaders::Vp6Stream> video, std::shared_ptr<Loaders::Mp3Stream> audio, bool skippable = false);
 
 			inline std::shared_ptr<Loaders::Vp6Stream> GetVP6()
 			{
@@ -75,7 +75,7 @@ namespace Game
 					vp6->stop();
 					mp3->stop();
 				}
-					
+
 			}
 		private:
 			std::shared_ptr<Loaders::Vp6Stream> vp6;
@@ -126,7 +126,7 @@ namespace Game
 		private:
 			std::shared_ptr<Loaders::AptFile> apt;
 		};
-		
+
 		struct CinematicArgs : public StateArgs
 		{
 			CinematicArgs(bool skipable)
