@@ -512,6 +512,13 @@ void AptFile::Render(sf::RenderWindow& win)
 			RenderGeometry(win, di);
 		}
 			break;
+		case EDITTEXT:
+		{
+			auto et = std::static_pointer_cast<EditText>(ch);
+			std::cout << "Rendering edittext: " << di.ch << std::endl;
+			//TODO render here
+		}
+			break;
 		}
 	}
 }
@@ -526,7 +533,10 @@ void AptFile::RenderGeometry(sf::RenderWindow& win, DisplayItem& di)
 	auto& ch = m_characters[di.ch];
 	auto sh = std::static_pointer_cast<Shape>(ch);
 	auto& geometry = m_geometry[sh->geometry];
-	win.setView(sf::View(sf::FloatRect(1024,768,2048,1528)));
+	sf::View v;
+	v.setCenter(sf::Vector2f(0,0));
+	v.setSize(sf::Vector2f(2048, 1526));
+	win.setView(v);
 
 	for (auto& c : geometry.order)
 	{

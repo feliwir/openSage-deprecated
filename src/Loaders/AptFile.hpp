@@ -290,6 +290,7 @@ namespace Loaders
 		std::map<uint32_t, std::shared_ptr<sf::Texture>> m_textures;
 		std::map<uint32_t, std::shared_ptr<Character>> m_characters;
 		std::map<uint32_t, DisplayItem> m_displaylist;
+		std::map<std::string, sf::Font> m_fonts;
 		std::vector<uint32_t> m_deleteList;
 		uint32_t m_frame;
 		sf::Color m_bgColor;

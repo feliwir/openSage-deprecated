@@ -15,10 +15,10 @@ const std::string Handler::speechDIR = "data/audio/speech/";
 const std::string Handler::compiledtexDIR = "art/compiledtextures/";
 
 std::vector<Handler::LoadInfo> Handler::loadOrder = {
-	//Handler::LoadInfo("EALogoMovie", new Handler::CinematicArgs(false)),
-	//Handler::LoadInfo("NewLineLogo", new Handler::CinematicArgs(false)),
-	//Handler::LoadInfo("TolkienLogo", new Handler::CinematicArgs(false)),
-	//Handler::LoadInfo("Overall_Game_Intro", new Handler::CinematicArgs(true)),
+	// Handler::LoadInfo("EALogoMovie", new Handler::CinematicArgs(false)),
+	// Handler::LoadInfo("NewLineLogo", new Handler::CinematicArgs(false)),
+	// Handler::LoadInfo("TolkienLogo", new Handler::CinematicArgs(false)),
+	// Handler::LoadInfo("Overall_Game_Intro", new Handler::CinematicArgs(true)),
 	Handler::LoadInfo("LoadingRing", new Handler::LoadingScreenArgs("titlescreenuserinterface.jpg")),
 	Handler::LoadInfo("MainMenu", new Handler::AptArgs(""))
 };
