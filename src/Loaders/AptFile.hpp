@@ -261,8 +261,7 @@ namespace Loaders
 		struct DisplayItem
 		{
 			uint32_t ch;
-			Transform rotateandscale;
-			Vector2 translate;
+			sf::RenderStates rs;
 			RGBA color;
 
 		};

@@ -421,7 +421,7 @@ void AptFile::Update()
 		{
 		case MOVIE:
 		{
-			auto& m = std::static_pointer_cast<Movie>(ch);
+			auto m = std::static_pointer_cast<Movie>(ch);
 			m->cFrame %= m->framecount;
 			auto& f = m->frames[m->cFrame];
 			UpdateFrame(f);
@@ -431,7 +431,7 @@ void AptFile::Update()
 			break;
 		case SPRITE:
 		{
-			auto& sp = std::static_pointer_cast<Sprite>(ch);
+			auto sp = std::static_pointer_cast<Sprite>(ch);
 			sp->cFrame %= sp->framecount;
 			auto& f = sp->frames[sp->cFrame];
 			UpdateFrame(f);
@@ -457,24 +457,21 @@ void AptFile::UpdateFrame(Frame& frame)
 		{
 		case PLACEOBJECT:
 		{
-			auto& po = std::static_pointer_cast<PlaceObject>(fi);
+			auto po = std::static_pointer_cast<PlaceObject>(fi);
 			DisplayItem di;
 			
 			if (po->character < 0)
 			{
 				std::cout << "Editing displayItem at depth " << po->depth << std::endl;
 				di = m_displaylist[po->depth];
-				di.rotateandscale = po->rotateandscale;
-				di.translate.X += po->translate.X;
-				di.translate.Y += po->translate.Y;
+				di.rs.transform.translate(po->translate.X,po->translate.Y);
 			}
 			else
 			{
 				std::cout << "Creating displayItem at depth " << po->depth << " from character "<< po->character << std::endl;
 				di.ch = po->character;
 				di.color = po->color;
-				di.rotateandscale = po->rotateandscale;
-				di.translate = po->translate;
+				di.rs.transform.translate(po->translate.X,po->translate.Y);
 			}	
 
 			m_displaylist[po->depth] = di;
@@ -482,7 +479,8 @@ void AptFile::UpdateFrame(Frame& frame)
 			break;
 		case REMOVEOBJECT:
 		{
-			auto& ro = std::static_pointer_cast<RemoveObject>(fi);
+			auto ro = std::static_pointer_cast<RemoveObject>(fi);
+			std::cout << "Delete diplayItem at depth " << ro->depth << std::endl;
 			m_deleteList.push_back(ro->depth);
 		}
 			break;
@@ -523,7 +521,7 @@ void AptFile::RenderGeometry(sf::RenderWindow& win, DisplayItem& di)
 	LineStyle ls;
 	Style cS;
 	auto& ch = m_characters[di.ch];
-	auto& sh = std::static_pointer_cast<Shape>(ch);
+	auto sh = std::static_pointer_cast<Shape>(ch);
 	auto& geometry = m_geometry[sh->geometry];
 	win.setView(sf::View(sf::FloatRect(0,0,1024,768)));
 
@@ -540,12 +538,14 @@ void AptFile::RenderGeometry(sf::RenderWindow& win, DisplayItem& di)
 			ts.rotateandscale = { 0.0, 0.0, 0.0, 0.0 };
 			ts.tex = 0;
 			ts.translate = { 0.0, 0.0 };
+			di.rs.texture = nullptr;
 		}
 			break;
 		case SOLIDSTYLE:
 		{
 			cS = STYLE_SOLID;
 			ss = geometry.solidstyles[cSS];
+			di.rs.texture = nullptr;
 			++cSS;
 		}
 			break;
@@ -553,6 +553,9 @@ void AptFile::RenderGeometry(sf::RenderWindow& win, DisplayItem& di)
 		{
 			cS = STYLE_TEXTURE;
 			ts = geometry.texturestyles[cSS];
+			auto id = m_dat[ts.tex];
+			auto tex = m_textures[id];
+			di.rs.texture = tex.get();
 			++cTS;
 		}
 			break;
@@ -561,8 +564,6 @@ void AptFile::RenderGeometry(sf::RenderWindow& win, DisplayItem& di)
 			auto t = geometry.tris[cTri];
 			sf::Color c;
 			sf::Vector2f uv1, uv2, uv3;
-			std::shared_ptr<sf::Texture> tex;
-			sf::RenderStates states;
 
 			if (cS == STYLE_SOLID)
 			{
@@ -584,25 +585,28 @@ void AptFile::RenderGeometry(sf::RenderWindow& win, DisplayItem& di)
 				c.g = ts.color.green;
 				c.b = ts.color.blue;
 				c.a = ts.color.alpha;
-				auto id = m_dat[ts.tex];
-				tex = m_textures[id];
-				uv1 = sf::Vector2f((ts.translate.X + t.v1.X) / (float)tex->getSize().x,
-								   (ts.translate.Y + t.v1.Y) / (float)tex->getSize().y);
 
-				uv2 = sf::Vector2f((ts.translate.X + t.v2.X) / (float)tex->getSize().x,
-					(ts.translate.Y + t.v2.Y) / (float)tex->getSize().y);
+				uv1 = sf::Vector2f((ts.translate.X + t.v1.X) / (float)di.rs.texture->getSize().x,
+								   (ts.translate.Y + t.v1.Y) / (float)di.rs.texture->getSize().y);
 
-				uv3 = sf::Vector2f((ts.translate.X + t.v3.X) / (float)tex->getSize().x,
-					(ts.translate.Y + t.v3.Y) / (float)tex->getSize().y);
+				uv2 = sf::Vector2f((ts.translate.X + t.v2.X) / (float)di.rs.texture->getSize().x,
+					(ts.translate.Y + t.v2.Y) / (float)di.rs.texture->getSize().y);
 
-				states.texture = tex.get();
-				states.blendMode = sf::BlendAlpha;
+				uv3 = sf::Vector2f((ts.translate.X + t.v3.X) / (float)di.rs.texture->getSize().x,
+					(ts.translate.Y + t.v3.Y) / (float)di.rs.texture->getSize().y);
+
+
+
+				std::cout << "Drawing textured triangle!" << std::endl;
+				std::cout << "uv1 " << uv1.x << " " << uv1.y << std::endl;
+				std::cout << "uv2 " << uv2.x << " " << uv2.y << std::endl;
+				std::cout << "uv3 " << uv3.x << " " << uv3.y << std::endl;
 
 			}
 
-			auto vec1 = sf::Vector2f(t.v1.X + di.translate.X, t.v1.Y + di.translate.Y);
-			auto vec2 = sf::Vector2f(t.v2.X + di.translate.X, t.v2.Y + di.translate.Y);
-			auto vec3 = sf::Vector2f(t.v3.X + di.translate.X, t.v3.Y + di.translate.Y);	
+			auto vec1 = sf::Vector2f(t.v1.X, t.v1.Y);
+			auto vec2 = sf::Vector2f(t.v2.X, t.v2.Y);
+			auto vec3 = sf::Vector2f(t.v3.X, t.v3.Y);	
 
 			sf::VertexArray va;
 			va.setPrimitiveType(sf::Triangles);
@@ -611,7 +615,7 @@ void AptFile::RenderGeometry(sf::RenderWindow& win, DisplayItem& di)
 			va.append(sf::Vertex(vec2, c, uv2));
 			va.append(sf::Vertex(vec3, c, uv3));
 
-			win.draw(va,tex.get());
+			win.draw(va,di.rs);
 			++cTri;
 		}
 			break;
@@ -642,8 +646,8 @@ void AptFile::RenderGeometry(sf::RenderWindow& win, DisplayItem& di)
 				c.a = ts.color.alpha;
 			}
 
-			auto vec1 = sf::Vector2f(l.v1.X + di.translate.X, l.v1.Y + di.translate.Y);
-			auto vec2 = sf::Vector2f(l.v2.X + di.translate.X, l.v2.Y + di.translate.Y);
+			auto vec1 = sf::Vector2f(l.v1.X, l.v1.Y);
+			auto vec2 = sf::Vector2f(l.v2.X, l.v2.Y);
 
 			sf::VertexArray va;
 			va.setPrimitiveType(sf::Triangles);
@@ -651,7 +655,7 @@ void AptFile::RenderGeometry(sf::RenderWindow& win, DisplayItem& di)
 			va.append(sf::Vertex(vec1, c));
 			va.append(sf::Vertex(vec2, c));
 
-			win.draw(va);
+			win.draw(va,di.rs);
 			++cLine;
 		}
 			break;
