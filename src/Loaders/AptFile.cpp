@@ -458,23 +458,22 @@ void AptFile::UpdateFrame(Frame& frame)
 		case PLACEOBJECT:
 		{
 			auto po = std::static_pointer_cast<PlaceObject>(fi);
-			DisplayItem di;
 			
 			if (po->character < 0)
 			{
 				std::cout << "Editing displayItem at depth " << po->depth << std::endl;
-				di = m_displaylist[po->depth];
+				auto& di = m_displaylist[po->depth];
 				di.rs.transform.translate(po->translate.X,po->translate.Y);
 			}
 			else
 			{
 				std::cout << "Creating displayItem at depth " << po->depth << " from character "<< po->character << std::endl;
+				DisplayItem di;
 				di.ch = po->character;
 				di.color = po->color;
 				di.rs.transform.translate(po->translate.X,po->translate.Y);
-			}	
-
-			m_displaylist[po->depth] = di;
+				m_displaylist[po->depth] = di;
+			}			
 		}
 			break;
 		case REMOVEOBJECT:
@@ -586,22 +585,11 @@ void AptFile::RenderGeometry(sf::RenderWindow& win, DisplayItem& di)
 				c.b = ts.color.blue;
 				c.a = ts.color.alpha;
 
-				uv1 = sf::Vector2f((ts.translate.X + t.v1.X) / (float)di.rs.texture->getSize().x,
-								   (ts.translate.Y + t.v1.Y) / (float)di.rs.texture->getSize().y);
+				uv1 = sf::Vector2f((ts.translate.X + t.v1.X),(ts.translate.Y + t.v1.Y));
 
-				uv2 = sf::Vector2f((ts.translate.X + t.v2.X) / (float)di.rs.texture->getSize().x,
-					(ts.translate.Y + t.v2.Y) / (float)di.rs.texture->getSize().y);
+				uv2 = sf::Vector2f((ts.translate.X + t.v2.X),(ts.translate.Y + t.v2.Y));
 
-				uv3 = sf::Vector2f((ts.translate.X + t.v3.X) / (float)di.rs.texture->getSize().x,
-					(ts.translate.Y + t.v3.Y) / (float)di.rs.texture->getSize().y);
-
-
-
-				std::cout << "Drawing textured triangle!" << std::endl;
-				std::cout << "uv1 " << uv1.x << " " << uv1.y << std::endl;
-				std::cout << "uv2 " << uv2.x << " " << uv2.y << std::endl;
-				std::cout << "uv3 " << uv3.x << " " << uv3.y << std::endl;
-
+				uv3 = sf::Vector2f((ts.translate.X + t.v3.X),(ts.translate.Y + t.v3.Y));
 			}
 
 			auto vec1 = sf::Vector2f(t.v1.X, t.v1.Y);
