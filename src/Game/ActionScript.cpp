@@ -3,7 +3,7 @@
 using namespace Script;
 #define STRLENGTH(x) (4 * ((((uint32_t)strlen(x) + 1) + 3)/4))
 #define GETALIGN(x) ((4 * ((x + 3) / 4)) - x)
-#define ALIGN(x) x = ((uint8_t *)(4 * ((((uint32_t)x) + 3) / 4)))
+#define ALIGN(x) x = ((uint8_t *)(4 * ((((uintptr_t)x) + 3) / 4)))
 
 uint32_t AS::GetBytecodeSize(uint8_t* a)
 {

@@ -8,9 +8,11 @@
 using namespace Loaders;
 using namespace Util;
 
+#define CHAR_SIG 0x09876543
+
 bool AptFile::loadFromStream(sf::InputStream& aptStream, sf::InputStream& constStream,const std::string& name)
 {
-	
+	m_name = name;
 	uint8_t* constBuf = new uint8_t[constStream.getSize()];
 	constStream.read(constBuf, constStream.getSize());
 
@@ -47,7 +49,10 @@ bool AptFile::loadFromStream(sf::InputStream& aptStream, sf::InputStream& constS
 	aptStream.read(aptBuf, aptStream.getSize());
 	
 	iter = aptBuf + m_data.aptdataoffset;
-	ParseCharacter(iter,aptBuf);
+	m_characters[0] = ParseCharacter(iter,aptBuf);
+	DisplayItem di;
+	di.ch = 0;
+	m_displaylist[0] = di;
 
 	std::cout << "Parsed " << name << ".apt" << std::endl;
 
@@ -75,9 +80,9 @@ bool AptFile::loadFromStream(sf::InputStream& aptStream, sf::InputStream& constS
 
 		pos = line.find("->");
 		strInt = line.substr(0, pos);
-		n1 = std::atoi(strInt.c_str());
+		n1 = std::stoi(strInt);
 		strInt = line.substr(pos+2, line.size());
-		n2 = std::atoi(strInt.c_str());
+		n2 = std::stoi(strInt);
 		m_dat[n1] = n2;
 	}
 
@@ -125,6 +130,7 @@ AptFile::GeometryEntry AptFile::ParseGeometry(const std::string& name)
 	std::string line;
 	std::string param;
 	int n1 = 0, n2 = 0, pos;
+	bool valid = false;
 	while (std::getline(iss, line))
 	{
 		line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
@@ -145,7 +151,7 @@ AptFile::GeometryEntry AptFile::ParseGeometry(const std::string& name)
 		{
 			case 'c':
 			{
-				
+					entry.order.push_back(CLEAR);
 			}
 				break;
 			case 's':
@@ -153,90 +159,180 @@ AptFile::GeometryEntry AptFile::ParseGeometry(const std::string& name)
 				if (params[0] == "tc")
 				{
 					TextureStyle ts;
-					ts.red = std::atoi(params[1].c_str());
-					ts.green = std::atoi(params[2].c_str());
-					ts.blue = std::atoi(params[3].c_str());
-					ts.alpha = std::atoi(params[4].c_str());
-					ts.TextureCharacter = std::atoi(params[5].c_str());
-					ts.rotateandscale ={std::atof(params[6].c_str()), std::atof(params[7].c_str()),
-										std::atof(params[8].c_str()), std::atof(params[9].c_str())};
-					ts.translate = {std::atof(params[10].c_str()), std::atof(params[11].c_str())};
+					ts.color = {std::stoi(params[1]), std::stoi(params[2]), 
+								std::stoi(params[3]), std::stoi(params[4])};
+					ts.tex = std::stoi(params[5]);
+					ts.rotateandscale ={std::stof(params[6]), std::stof(params[7]),
+										std::stof(params[8]), std::stof(params[9])};
+					ts.translate = {std::stof(params[10]), std::stof(params[11])};
 					entry.texturestyles.push_back(ts);
+					entry.order.push_back(TEXTURSTYLE);
 				}
 				else if (params[0] == "s")
 				{
 					SolidStyle s;
-					s.red = std::atoi(params[1].c_str());
-					s.green = std::atoi(params[2].c_str());
-					s.blue = std::atoi(params[3].c_str());
-					s.alpha = std::atoi(params[4].c_str());
+					s.color = { std::stoi(params[1]), std::stoi(params[2]),
+								std::stoi(params[3]), std::stoi(params[4])};
 					entry.solidstyles.push_back(s);
+					entry.order.push_back(SOLIDSTYLE);
 				}
 			}
 				break;
 			case 't':
 			{
 				Tri t;
-				t.v1 = { std::atof(params[0].c_str()), std::atof(params[1].c_str())};
-				t.v2 = { std::atof(params[2].c_str()), std::atof(params[3].c_str())};
-				t.v3 = { std::atof(params[4].c_str()), std::atof(params[5].c_str())};
+				t.v1 = { std::stof(params[0]), std::stof(params[1])};
+				t.v2 = { std::stof(params[2]), std::stof(params[3])};
+				t.v3 = { std::stof(params[4]), std::stof(params[5])};
 				entry.tris.push_back(t);
+				entry.order.push_back(TRIANGLE);
 			}
 				break;
 			case 'l':
 			{
 				Line l;
-				l.v1 = { std::atof(params[0].c_str()), std::atof(params[1].c_str())};
-				l.v2 = { std::atof(params[2].c_str()), std::atof(params[3].c_str())};
+				l.v1 = { std::stof(params[0]), std::stof(params[1])};
+				l.v2 = { std::stof(params[2]), std::stof(params[3])};
 				entry.lines.push_back(l);
+				entry.order.push_back(LINE);
 			}
 		}
 
 		params.clear();
 	}
 
-	entry.tricount = entry.tris.size();
-	entry.linecount = entry.lines.size();
-	entry.texturestylecount = entry.texturestyles.size();
-	entry.solidstylecount = entry.solidstyles.size();
-	entry.linestylecount = entry.linestyles.size();
-
+		
 	return entry;
 }
 
 std::shared_ptr<AptFile::Character> AptFile::ParseCharacter(uint8_t*& buf,uint8_t* base)
 {
+	uint8_t* start = buf;
 	auto type = Read<uint32_t>(buf);
 	auto signature = Read<uint32_t>(buf);
+	if (signature != CHAR_SIG)
+		return nullptr;
+
 	std::shared_ptr<Character> result;
 	
 	switch (type)
 	{
+		case SHAPE:
+		{
+			auto sh = std::make_shared<Shape>();
+			sh->bounds = Read<Rect>(buf);
+			sh->geometry = Read<uint32_t>(buf);
+			m_geometry[sh->geometry] = ParseGeometry(m_name + "_geometry/" + std::to_string(sh->geometry) + ".ru");
+			result = sh;
+		}
+			break;
+		case EDITTEXT:
+		{
+			auto et = std::make_shared<EditText>();
+			et->bounds = Read<Rect>(buf);
+			et->font = Read<uint32_t>(buf);
+			et->alignment = Read<uint32_t>(buf);
+			et->color = Read<RGBA>(buf);
+			et->fontheight = Read<float>(buf);
+			et->readonly = Read<uint32_t>(buf);
+			et->multiline = Read<uint32_t>(buf);
+			et->wordwrap = Read<uint32_t>(buf);
+			char* text = reinterpret_cast<char*>(Read<uint32_t>(buf)+base);
+			et->text = std::string(text);
+			char* variable = reinterpret_cast<char*>(Read<uint32_t>(buf)+base);
+			et->variable = std::string(variable);
+			result = et;
+		}
+			break;
+		case FONT:
+		{
+			auto font = std::make_shared<Font>();
+			char* name = reinterpret_cast<char*>(Read<uint32_t>(buf)+base);
+			font->name = std::string(name);
+			font->glyphcount = Read<uint32_t>(buf);
+			auto glyphOffset = Read<uint32_t>(buf)+base;
+			for (auto i = 0; i < font->glyphcount; ++i)
+			{
+				font->glyphs.push_back(Read<uint32_t>(buf));
+			}
+			result = font;
+		}
+			break;
+		case SPRITE:
+		{
+			auto sprite = std::make_shared<Sprite>();
+			sprite->framecount = Read<uint32_t>(buf);
+			auto frameOffset = Read<uint32_t>(buf)+base;
+			for (auto i = 0; i < sprite->framecount; ++i)
+			{
+				Frame f;
+				f.frameitemcount = Read<uint32_t>(frameOffset);
+				auto itemsOffset = Read<uint32_t>(frameOffset)+base;
+				for (auto j = 0; j < f.frameitemcount; ++j)
+				{
+					auto itemOffset = Read<uint32_t>(itemsOffset)+base;
+					f.frameitems.push_back(ParseFrameItem(itemOffset, base));
+				}
+
+				sprite->frames.push_back(f);
+			}
+
+			sprite->cFrame = Read<uint32_t>(buf);
+			result = sprite;
+		}
+			break;
 		case MOVIE:
 		{
-		auto movie = std::make_shared<Movie>();
-		movie->type = type;
-		movie->signature = signature;
-		movie->framecount = Read<uint32_t>(buf);
+			auto movie = std::make_shared<Movie>();
+			movie->framecount = Read<uint32_t>(buf);
 
-		auto frameOffset = Read<uint32_t>(buf)+base;
-		for (auto i = 0; i < movie->framecount; ++i)
-		{
-			Frame f;
-			f.frameitemcount = Read<uint32_t>(frameOffset);
-			auto itemsOffset = Read<uint32_t>(frameOffset)+base;
-			for (auto j = 0; j < f.frameitemcount;  ++j)
+			auto frameOffset = Read<uint32_t>(buf)+base;
+			for (auto i = 0; i < movie->framecount; ++i)
 			{
-				auto itemOffset = Read<uint32_t>(itemsOffset)+base;
-				f.frameitems.push_back(ParseFrameItem(itemOffset, base));
+				Frame f;
+				f.frameitemcount = Read<uint32_t>(frameOffset);
+				auto itemsOffset = Read<uint32_t>(frameOffset)+base;
+				for (auto j = 0; j < f.frameitemcount;  ++j)
+				{
+					auto itemOffset = Read<uint32_t>(itemsOffset)+base;
+					f.frameitems.push_back(ParseFrameItem(itemOffset, base));
+				}
+				movie->frames.push_back(f);
 			}
-		}
 
-		result = movie;
+			movie->cFrame = Read<uint32_t>(buf);
+			movie->charactercount = Read<uint32_t>(buf);
+			auto charactersOffset = Read<uint32_t>(buf) + base;
+			for (auto i = 0; i < movie->charactercount; ++i)
+			{
+				auto fileOffset = Read<uint32_t>(charactersOffset);
+				if (fileOffset)
+				{
+					auto characterOffset = fileOffset+base;
+					//movies contain themselves so skip them
+					if (characterOffset == start)
+						continue;
+
+					m_characters[i] = ParseCharacter(characterOffset, base);
+				}
+				else
+				{
+					m_characters[i] = nullptr;
+				}
+			}
+			movie->width = Read<uint32_t>(buf);
+			movie->height = Read<uint32_t>(buf);
+			result = movie;
 		}
 		break;
 	}
 
+	if (result != nullptr)
+	{
+		result->type = type;
+		result->signature = signature;
+	}
+		
 	return result;
 }
 
@@ -250,7 +346,6 @@ std::shared_ptr<AptFile::FrameItem> AptFile::ParseFrameItem(uint8_t*& buf, uint8
 	case ACTION:
 	{
 		auto action = std::make_shared<Action>();
-		action->type = type;
 		auto actionOffset = base + Read<uint32_t>(buf);
 		auto actionSize = Script::AS::GetBytecodeSize(actionOffset);
 		action->bytecode = new uint8_t[actionSize];
@@ -258,19 +353,25 @@ std::shared_ptr<AptFile::FrameItem> AptFile::ParseFrameItem(uint8_t*& buf, uint8
 		result = action;
 	}
 		break;
+	case FRAMELABEL:
+	{
+		auto fl = std::make_shared<FrameLabel>();
+		char* lbl = reinterpret_cast<char*>(Read<uint32_t>(buf)+base);
+		fl->label = std::string(lbl);
+		fl->flags = Read<uint32_t>(buf);
+		fl->frame = Read<uint32_t>(buf);
+		result = fl;
+	}
+		break;
 	case PLACEOBJECT:
 	{
 		auto po = std::make_shared<PlaceObject>();
-		po->type = type;
 		po->flags =	Read<uint32_t>(buf);
 		po->depth =	Read<int32_t>(buf);
 		po->character = Read<int32_t>(buf);
 		po->rotateandscale = Read<Transform>(buf);
 		po->translate = Read<Vector2>(buf);
-		po->red = Read<uint8_t>(buf);
-		po->green = Read<uint8_t>(buf);
-		po->blue = Read<uint8_t>(buf);
-		po->alpha = Read<uint8_t>(buf);
+		po->color = Read<RGBA>(buf);
 		buf += 4;
 		po->ratio = Read<float>(buf);
 		char* name = reinterpret_cast<char*>(Read<uint32_t>(buf)+base);
@@ -279,32 +380,283 @@ std::shared_ptr<AptFile::FrameItem> AptFile::ParseFrameItem(uint8_t*& buf, uint8
 		auto poaOffset = Read<uint32_t>(buf) +base;
 		po->poa.clipactioncount = Read<uint32_t>(poaOffset);
 		auto poaOffset2 = Read<uint32_t>(poaOffset) +base;
+		result = po;
+	}
+		break;
+	case REMOVEOBJECT:
+	{
+		auto ro = std::make_shared<RemoveObject>();
+		ro->depth = Read<int32_t>(buf);
+		result = ro;
 	}
 		break;
 	case BACKGROUNDCOLOR:
 	{
 		auto bgcolor = std::make_shared<BackgroundColor>();
-		bgcolor->type = type;
-		bgcolor->red = Read<uint8_t>(buf);
-		bgcolor->green = Read<uint8_t>(buf);
-		bgcolor->blue = Read<uint8_t>(buf);
-		bgcolor->alpha = Read<uint8_t>(buf);
+		bgcolor->color = Read<RGBA>(buf);
 		result = bgcolor;
 	}
 		break;
 	}
+
+	if (result != nullptr)
+		result->type = type;
 
 	return result;
 }
 
 void AptFile::Update()
 {
-	
+	std::cout << "Updating frame " << m_frame << std::endl;
+
+	m_deleteList.clear();
+	for (auto& pair : m_displaylist)
+	{
+		auto& di = pair.second;
+		auto& ch = m_characters[di.ch];
+		if (ch == nullptr)
+			continue;
+
+		switch (ch->type)
+		{
+		case MOVIE:
+		{
+			auto& m = std::static_pointer_cast<Movie>(ch);
+			m->cFrame %= m->framecount;
+			auto& f = m->frames[m->cFrame];
+			UpdateFrame(f);
+			++m->cFrame;
+
+		}
+			break;
+		case SPRITE:
+		{
+			auto& sp = std::static_pointer_cast<Sprite>(ch);
+			sp->cFrame %= sp->framecount;
+			auto& f = sp->frames[sp->cFrame];
+			UpdateFrame(f);
+			++sp->cFrame;
+		}
+			break;
+		}
+	}
+
+	for (auto& ro : m_deleteList)
+	{
+		m_displaylist.erase(ro);
+	}
+
+	++m_frame;
+}
+
+void AptFile::UpdateFrame(Frame& frame)
+{
+	for (auto& fi : frame.frameitems)
+	{
+		switch (fi->type)
+		{
+		case PLACEOBJECT:
+		{
+			auto& po = std::static_pointer_cast<PlaceObject>(fi);
+			DisplayItem di;
+			
+			if (po->character < 0)
+			{
+				std::cout << "Editing displayItem at depth " << po->depth << std::endl;
+				di = m_displaylist[po->depth];
+				di.rotateandscale = po->rotateandscale;
+				di.translate.X += po->translate.X;
+				di.translate.Y += po->translate.Y;
+			}
+			else
+			{
+				std::cout << "Creating displayItem at depth " << po->depth << " from character "<< po->character << std::endl;
+				di.ch = po->character;
+				di.color = po->color;
+				di.rotateandscale = po->rotateandscale;
+				di.translate = po->translate;
+			}	
+
+			m_displaylist[po->depth] = di;
+		}
+			break;
+		case REMOVEOBJECT:
+		{
+			auto& ro = std::static_pointer_cast<RemoveObject>(fi);
+			m_deleteList.push_back(ro->depth);
+		}
+			break;
+		}
+	}
 }
 
 void AptFile::Render(sf::RenderWindow& win)
 {
+	win.clear(m_bgColor);
+	for (auto& pair : m_displaylist)
+	{
+		auto& di = pair.second;
+		auto& ch = m_characters[di.ch];
+		if (ch == nullptr)
+			continue;
 
+		switch (ch->type)
+		{
+		case SHAPE:
+		{
+			auto sh = std::static_pointer_cast<Shape>(ch);
+			auto& geometry = m_geometry[sh->geometry];
+			sf::VertexArray va;
+			std::cout << "Rendering shape: " << sh->geometry << std::endl;
+			RenderGeometry(win, di);
+		}
+			break;
+		}
+	}
+}
+
+void AptFile::RenderGeometry(sf::RenderWindow& win, DisplayItem& di)
+{
+	uint32_t cTri = 0, cLine = 0, cSS = 0, cTS = 0, cLS = 0;
+	SolidStyle ss;
+	TextureStyle ts;
+	LineStyle ls;
+	Style cS;
+	auto& ch = m_characters[di.ch];
+	auto& sh = std::static_pointer_cast<Shape>(ch);
+	auto& geometry = m_geometry[sh->geometry];
+	win.setView(sf::View(sf::FloatRect(0,0,1024,768)));
+
+	for (auto& c : geometry.order)
+	{
+		switch (c)
+		{
+		case CLEAR:
+		{
+			ls.width = 0;
+			ls.color = { 0, 0, 0, 0 };
+			ss.color = { 0, 0, 0, 0 };
+			ts.color = { 0, 0, 0, 0 };
+			ts.rotateandscale = { 0.0, 0.0, 0.0, 0.0 };
+			ts.tex = 0;
+			ts.translate = { 0.0, 0.0 };
+		}
+			break;
+		case SOLIDSTYLE:
+		{
+			cS = STYLE_SOLID;
+			ss = geometry.solidstyles[cSS];
+			++cSS;
+		}
+			break;
+		case TEXTURSTYLE:
+		{
+			cS = STYLE_TEXTURE;
+			ts = geometry.texturestyles[cSS];
+			++cTS;
+		}
+			break;
+		case TRIANGLE:
+		{
+			auto t = geometry.tris[cTri];
+			sf::Color c;
+			sf::Vector2f uv1, uv2, uv3;
+			std::shared_ptr<sf::Texture> tex;
+			sf::RenderStates states;
+
+			if (cS == STYLE_SOLID)
+			{
+				c.r = ss.color.red;
+				c.g = ss.color.green;
+				c.b = ss.color.blue;
+				c.a = ss.color.alpha;
+			}
+			else if (cS == STYLE_LINE)
+			{
+				c.r = ls.color.red;
+				c.g = ls.color.green;
+				c.b = ls.color.blue;
+				c.a = ls.color.alpha;
+			}
+			else if (cS == STYLE_TEXTURE)
+			{
+				c.r = ts.color.red;
+				c.g = ts.color.green;
+				c.b = ts.color.blue;
+				c.a = ts.color.alpha;
+				auto id = m_dat[ts.tex];
+				tex = m_textures[id];
+				uv1 = sf::Vector2f((ts.translate.X + t.v1.X) / (float)tex->getSize().x,
+								   (ts.translate.Y + t.v1.Y) / (float)tex->getSize().y);
+
+				uv2 = sf::Vector2f((ts.translate.X + t.v2.X) / (float)tex->getSize().x,
+					(ts.translate.Y + t.v2.Y) / (float)tex->getSize().y);
+
+				uv3 = sf::Vector2f((ts.translate.X + t.v3.X) / (float)tex->getSize().x,
+					(ts.translate.Y + t.v3.Y) / (float)tex->getSize().y);
+
+				states.texture = tex.get();
+				states.blendMode = sf::BlendAlpha;
+
+			}
+
+			auto vec1 = sf::Vector2f(t.v1.X + di.translate.X, t.v1.Y + di.translate.Y);
+			auto vec2 = sf::Vector2f(t.v2.X + di.translate.X, t.v2.Y + di.translate.Y);
+			auto vec3 = sf::Vector2f(t.v3.X + di.translate.X, t.v3.Y + di.translate.Y);	
+
+			sf::VertexArray va;
+			va.setPrimitiveType(sf::Triangles);
+
+			va.append(sf::Vertex(vec1, c, uv1));
+			va.append(sf::Vertex(vec2, c, uv2));
+			va.append(sf::Vertex(vec3, c, uv3));
+
+			win.draw(va,tex.get());
+			++cTri;
+		}
+			break;
+		case LINE:
+		{
+			auto l = geometry.lines[cLine];
+			sf::Color c;
+
+			if (cS == STYLE_SOLID)
+			{
+				c.r = ss.color.red;
+				c.g = ss.color.green;
+				c.b = ss.color.blue;
+				c.a = ss.color.alpha;
+			}
+			else if (cS == STYLE_LINE)
+			{
+				c.r = ls.color.red;
+				c.g = ls.color.green;
+				c.b = ls.color.blue;
+				c.a = ls.color.alpha;
+			}
+			else if (cS == STYLE_TEXTURE)
+			{
+				c.r = ts.color.red;
+				c.g = ts.color.green;
+				c.b = ts.color.blue;
+				c.a = ts.color.alpha;
+			}
+
+			auto vec1 = sf::Vector2f(l.v1.X + di.translate.X, l.v1.Y + di.translate.Y);
+			auto vec2 = sf::Vector2f(l.v2.X + di.translate.X, l.v2.Y + di.translate.Y);
+
+			sf::VertexArray va;
+			va.setPrimitiveType(sf::Triangles);
+
+			va.append(sf::Vertex(vec1, c));
+			va.append(sf::Vertex(vec2, c));
+
+			win.draw(va);
+			++cLine;
+		}
+			break;
+		}
+	}
 }
 
 AptFile::~AptFile()
@@ -312,6 +664,7 @@ AptFile::~AptFile()
 
 }
 
-AptFile::AptFile() :  m_frame(0)
+AptFile::AptFile() : m_frame(0), m_bgColor(55,55,55,255)
 {
+	
 }

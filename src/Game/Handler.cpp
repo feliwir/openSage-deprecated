@@ -20,7 +20,7 @@ std::vector<Handler::LoadInfo> Handler::loadOrder = {
 	//Handler::LoadInfo("TolkienLogo", new Handler::CinematicArgs(false)),
 	//Handler::LoadInfo("Overall_Game_Intro", new Handler::CinematicArgs(true)),
 	Handler::LoadInfo("LoadingRing", new Handler::LoadingScreenArgs("titlescreenuserinterface.jpg")),
-	Handler::LoadInfo("MainMenu", new Handler::AptArgs(""))
+	Handler::LoadInfo("TestApt", new Handler::AptArgs(""))
 };
 
 std::shared_ptr<Handler::StateInfo> Handler::cState;
@@ -202,8 +202,9 @@ void Handler::Update(sf::RenderWindow& m_window)
 		{
 			auto apt_file = std::dynamic_pointer_cast<AptInfo>(cState);
 			auto apt = apt_file->GetApt();
+			std::this_thread::sleep_for(std::chrono::milliseconds(200));
 			apt->Update();
-			apt->Render(m_window);
+			apt->Render(m_window);		
 		}
 			break;
 		}

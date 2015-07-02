@@ -42,53 +42,65 @@ namespace Loaders
 			Vector2 v3;
 		};
 
+		struct RGBA
+		{
+			uint8_t red;
+			uint8_t green;
+			uint8_t blue;
+			uint8_t alpha;
+		};
+
 		struct Line {
 			Vector2 v1;
 			Vector2 v2;
 		};
 
 		struct SolidStyle {
-			uint32_t red;
-			uint32_t green;
-			uint32_t blue;
-			uint32_t alpha;
+			RGBA color;
 		};
 
 		struct LineStyle {
 			uint32_t width;
-			uint32_t red;
-			uint32_t green;
-			uint32_t blue;
-			uint32_t alpha;
+			RGBA color;
 		};
 
 		struct TextureStyle {
-			uint32_t red;
-			uint32_t green;
-			uint32_t blue;
-			uint32_t alpha;
-			uint32_t TextureCharacter;
+			RGBA color;
+			uint32_t tex;
 			Transform rotateandscale;
 			Vector2 translate;
 		};
 
+		enum Commands
+		{
+			CLEAR		= 0,
+			TRIANGLE	= 1,
+			LINE		= 2,
+			SOLIDSTYLE	= 3,
+			LINESTYLE	= 4,
+			TEXTURSTYLE	= 5,
+		};
+
+		enum Style
+		{
+			STYLE_SOLID = 0,
+			STYLE_LINE = 1,
+			STYLE_TEXTURE = 2,
+		};
+
 		struct GeometryEntry {
-			uint32_t tricount;
 			std::vector<Tri> tris;
-			uint32_t linecount;
 			std::vector <Line> lines;
-			uint32_t solidstylecount;
 			std::vector <SolidStyle> solidstyles;
-			uint32_t linestylecount;
 			std::vector <LineStyle> linestyles;
-			uint32_t texturestylecount;
 			std::vector <TextureStyle> texturestyles;
+			std::vector<Commands>	order;
 		};
 
 		struct Triangle {
-			unsigned short v1;
-			unsigned short v2;
-			unsigned short v3;
+			uint16_t v1;
+			uint16_t v2;
+			uint16_t v3;
 		};
 
 		//Const File
@@ -148,10 +160,7 @@ namespace Loaders
 
 		struct BackgroundColor : public FrameItem
 		{
-			uint8_t red;
-			uint8_t green;
-			uint8_t blue;
-			uint8_t alpha;
+			RGBA color;
 		};
 
 		struct Action : public FrameItem
@@ -159,26 +168,38 @@ namespace Loaders
 			uint8_t* bytecode;
 		};
 
-		struct PlaceObjectAction {
+		struct FrameLabel : public FrameItem
+		{
+			std::string label;
+			uint32_t flags;
+			uint32_t frame;
+		};
+
+		struct RemoveObject : public FrameItem 
+		{
+			int32_t depth;
+		};
+
+		struct PlaceObjectAction 
+		{
 			uint64_t flags;
 			uint8_t* bytecode;
 		};
 
-		struct PlaceObjectActions {
+		struct PlaceObjectActions 
+		{
 			uint32_t clipactioncount;
 			std::vector<PlaceObjectAction> actions;
 		};
 
-		struct PlaceObject : public FrameItem {
+		struct PlaceObject : public FrameItem 
+		{
 			uint32_t flags; //matches with PlaceObjectFlags
 			int32_t depth;
 			int32_t character;
 			Transform rotateandscale;
 			Vector2 translate;
-			uint8_t red;
-			uint8_t green;
-			uint8_t blue;
-			uint8_t alpha;
+			RGBA color;
 			uint32_t unknown; ///always zero as far as I can see
 			float ratio;
 			std::string name;
@@ -192,16 +213,58 @@ namespace Loaders
 			std::vector<std::shared_ptr<FrameItem>> frameitems;
 		};
 
-		struct Shape : public Character
+		struct Font : public Character
+		{
+			std::string name;
+			uint32_t glyphcount;
+			std::vector<uint32_t> glyphs;
+		};
+
+		struct Shape : public Character 
 		{
 			Rect bounds;
 			uint32_t geometry;
+		};
+
+		struct EditText : public Character 
+		{
+			Rect bounds;
+			uint32_t font;
+			uint32_t alignment;
+			RGBA color;
+			float fontheight;
+			uint32_t readonly;
+			uint32_t multiline;
+			uint32_t wordwrap;
+			std::string text;
+			std::string variable;
+		};
+
+		struct Sprite : public Character 
+		{
+			uint32_t framecount;
+			std::vector<Frame> frames; //offset of frame data
+			uint32_t cFrame;
 		};
 
 		struct Movie : public Character
 		{
 			uint32_t framecount;
 			std::vector<Frame> frames;
+			uint32_t cFrame;
+			uint32_t charactercount;
+			std::vector<std::shared_ptr<Character>> characters;
+			uint32_t width;
+			uint32_t height;
+		};
+
+		struct DisplayItem
+		{
+			uint32_t ch;
+			Transform rotateandscale;
+			Vector2 translate;
+			RGBA color;
+
 		};
 #pragma endregion
 
@@ -209,7 +272,10 @@ namespace Loaders
 		GeometryEntry ParseGeometry(const std::string& name);
 		std::shared_ptr<Character> ParseCharacter(uint8_t*& buffer, uint8_t* base);
 		std::shared_ptr<FrameItem> ParseFrameItem(uint8_t*& buffer, uint8_t* base);
-		uint32_t GetBytecodeSize(uint8_t* bytecode);
+
+		void UpdateFrame(Frame& frame);
+
+		void RenderGeometry(sf::RenderWindow& win, DisplayItem& di);
 	public:
 		bool loadFromStream(sf::InputStream& aptStream, sf::InputStream& constStream, const std::string& name);
 		void Update();
@@ -217,12 +283,15 @@ namespace Loaders
 		~AptFile();
 		AptFile();
 	private:
+		std::string m_name;
 		ConstData m_data;
 		Movie m_movie;
 		std::map<uint32_t, GeometryEntry> m_geometry;
 		std::map<uint32_t, uint32_t> m_dat;
 		std::map<uint32_t, std::shared_ptr<sf::Texture>> m_textures;
 		std::map<uint32_t, std::shared_ptr<Character>> m_characters;
+		std::map<uint32_t, DisplayItem> m_displaylist;
+		std::vector<uint32_t> m_deleteList;
 		uint32_t m_frame;
 		sf::Color m_bgColor;
 	};
