@@ -463,7 +463,9 @@ void AptFile::UpdateFrame(Frame& frame)
 			{
 				std::cout << "Editing displayItem at depth " << po->depth << std::endl;
 				auto& di = m_displaylist[po->depth];
-				di.rs.transform.translate(po->translate.X,po->translate.Y);
+				std::cout << "Transforming character " << di.ch << " (" 
+							<< po->translate.X<< ","<< po->translate.Y << ")" << std::endl;
+				di.rs.transform.translate(abs(po->translate.X),abs(po->translate.Y));
 			}
 			else
 			{
@@ -471,7 +473,9 @@ void AptFile::UpdateFrame(Frame& frame)
 				DisplayItem di;
 				di.ch = po->character;
 				di.color = po->color;
-				di.rs.transform.translate(po->translate.X,po->translate.Y);
+				std::cout << "Transforming character " << di.ch << " (" 
+							<< po->translate.X<< ","<< po->translate.Y << ")" << std::endl;
+				di.rs.transform.translate(abs(po->translate.X),abs(po->translate.Y));
 				m_displaylist[po->depth] = di;
 			}			
 		}
@@ -522,7 +526,7 @@ void AptFile::RenderGeometry(sf::RenderWindow& win, DisplayItem& di)
 	auto& ch = m_characters[di.ch];
 	auto sh = std::static_pointer_cast<Shape>(ch);
 	auto& geometry = m_geometry[sh->geometry];
-	win.setView(sf::View(sf::FloatRect(0,0,1024,768)));
+	win.setView(sf::View(sf::FloatRect(1024,768,2048,1528)));
 
 	for (auto& c : geometry.order)
 	{
@@ -592,6 +596,7 @@ void AptFile::RenderGeometry(sf::RenderWindow& win, DisplayItem& di)
 				uv3 = sf::Vector2f((ts.translate.X + t.v3.X),(ts.translate.Y + t.v3.Y));
 			}
 
+			c.a = 255;
 			auto vec1 = sf::Vector2f(t.v1.X, t.v1.Y);
 			auto vec2 = sf::Vector2f(t.v2.X, t.v2.Y);
 			auto vec3 = sf::Vector2f(t.v3.X, t.v3.Y);	
@@ -602,6 +607,7 @@ void AptFile::RenderGeometry(sf::RenderWindow& win, DisplayItem& di)
 			va.append(sf::Vertex(vec1, c, uv1));
 			va.append(sf::Vertex(vec2, c, uv2));
 			va.append(sf::Vertex(vec3, c, uv3));
+
 
 			win.draw(va,di.rs);
 			++cTri;
