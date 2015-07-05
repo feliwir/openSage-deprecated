@@ -7,12 +7,7 @@
 
 using namespace Game;
 
-const std::string Handler::videoINI = "data/ini/video.ini";
-const std::string Handler::speechINI = "data/ini/speech.ini";
 
-const std::string Handler::videoDIR	= "data/movies/";
-const std::string Handler::speechDIR = "data/audio/speech/";
-const std::string Handler::compiledtexDIR = "art/compiledtextures/";
 
 std::vector<Handler::LoadInfo> Handler::loadOrder = {
 	// Handler::LoadInfo("EALogoMovie", new Handler::CinematicArgs(false)),
@@ -51,15 +46,18 @@ Handler::AptInfo::AptInfo(std::shared_ptr<Loaders::AptFile> aptfile)
 
 void Handler::Initialize()
 {
-	BigStream videoStream,speechStream;
-	videoStream.open(videoINI);
-	std::string videoStr = videoStream.readAll();
-	INI::Parse(videoStr);
-	speechStream.open(speechINI);
-	std::string speechStr = speechStream.readAll();
-	INI::Parse(speechStr);
-	GetState();
-	
+	BigStream iniStream;
+	std::string iniStr;
+	iniStream.open(GameData::videoINI);
+	iniStr = iniStream.readAll();
+	INI::Parse(iniStr);
+	iniStream.open(GameData::speechINI);
+	iniStr = iniStream.readAll();
+	INI::Parse(iniStr);
+	iniStream.open(GameData::languageINI);
+	iniStr = iniStream.readAll();
+	INI::Parse(iniStr);
+	GetState();	
 }
 
 void Handler::GetState()
@@ -82,7 +80,7 @@ void Handler::GetState()
 				continue;
 
 			std::shared_ptr<Loaders::Vp6Stream> vp6 = std::make_shared<Loaders::Vp6Stream>();
-			if (!vp6->open(videoDIR + video->filename + ".vp6"))
+			if (!vp6->open(GameData::videoDIR + video->filename + ".vp6"))
 				continue;
 
 			vp6->play();
@@ -93,7 +91,7 @@ void Handler::GetState()
 			{							
 				std::transform(dialog->filename.begin(), dialog->filename.end(), dialog->filename.begin(), ::tolower);
 
-				if (mp3->open(speechDIR + dialog->filename))
+				if (mp3->open(GameData::speechDIR + dialog->filename))
 				{
 					mp3->play();
 				}
@@ -116,6 +114,7 @@ void Handler::GetState()
 			BigStream constStream;
 			if (!constStream.open(l.name + ".const"))
 				continue;
+
 			apt->loadFromStream(aptStream, constStream,l.name);
 			cState = std::make_shared<AptInfo>(apt);
 		}
@@ -130,12 +129,12 @@ void Handler::GetState()
 
 			std::shared_ptr<Loaders::Vp6Stream> vp6 = std::make_shared<Loaders::Vp6Stream>();
 
-			if (vp6->open(videoDIR + video->filename + ".vp6"))
+			if (vp6->open(GameData::videoDIR + video->filename + ".vp6"))
 			{
 				vp6->play();
 			}
 
-			std::string path = compiledtexDIR + args->GetImageName().substr(0, 2) + "/" + args->GetImageName();
+			std::string path = GameData::compiledtexDIR + args->GetImageName().substr(0, 2) + "/" + args->GetImageName();
 			BigStream imgFile;
 			if (!imgFile.open(path))
 				continue;
@@ -173,7 +172,7 @@ void Handler::Update(sf::RenderWindow& m_window)
 		case CINEMATIC:
 		{
 			m_window.clear();
-			auto cinematic = std::dynamic_pointer_cast<CinematicInfo>(cState);			
+			auto cinematic = std::static_pointer_cast<CinematicInfo>(cState);			
 			auto sprite = sf::Sprite(cinematic->GetVP6()->GetTexture());
 			sprite.setScale((float)m_window.getSize().x / sprite.getTextureRect().width,
 							(float)m_window.getSize().y / sprite.getTextureRect().height);
@@ -190,7 +189,7 @@ void Handler::Update(sf::RenderWindow& m_window)
 		case LOADING_SCREEN:
 		{
 			m_window.clear();
-			auto loading_screen = std::dynamic_pointer_cast<LoadingScreenInfo>(cState);
+			auto loading_screen = std::static_pointer_cast<LoadingScreenInfo>(cState);
 			auto sprite = sf::Sprite(*loading_screen->GetTex());
 			sprite.setScale((float)m_window.getSize().x / sprite.getTextureRect().width,
 				(float)m_window.getSize().y / sprite.getTextureRect().height*1.3333f);
@@ -200,9 +199,9 @@ void Handler::Update(sf::RenderWindow& m_window)
 			break;
 		case APT_FILE:
 		{
-			auto apt_file = std::dynamic_pointer_cast<AptInfo>(cState);
+			auto apt_file = std::static_pointer_cast<AptInfo>(cState);
 			auto apt = apt_file->GetApt();
-			std::this_thread::sleep_for(std::chrono::milliseconds(200));
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			apt->Update();
 			apt->Render(m_window);		
 		}

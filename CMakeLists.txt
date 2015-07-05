@@ -67,12 +67,20 @@ find_package (FFMPEG REQUIRED)
 message(STATUS "FFMPEG libraries: ${FFMPEG_LIBRARIES}")
 
 #################################################################################################################
+# ================================================== GLM SETUP ================================================ #
+#################################################################################################################
+
+find_package (GLM REQUIRED)
+message(STATUS "GLM library: ${GLM_INCLUDE_DIR}")
+
+
+#################################################################################################################
 # ============================================== openSage SETUP =============================================== #
 #################################################################################################################
 
 file(GLOB_RECURSE SOURCE_FILES ${SOURCES_DIR}/[a-z,A-Z]*.[c,h]* ${SOURCES_DIR}/DebugTools/[a-z,A-Z]*.[c,h]*)
 
-set(OPENSAGE_INCLUDE_DIRS "${MPG123_INCLUDE_DIR};${SFML_INCLUDE_DIR};${FFMPEG_INCLUDE_DIRS}")
+set(OPENSAGE_INCLUDE_DIRS "${MPG123_INCLUDE_DIR};${SFML_INCLUDE_DIR};${FFMPEG_INCLUDE_DIRS};${GLM_INCLUDE_DIR}")
 include_directories (${OPENSAGE_INCLUDE_DIRS})
 
 add_executable(${PROJ_NAME} ${SOURCE_FILES})

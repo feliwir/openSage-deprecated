@@ -8,14 +8,16 @@ using namespace Game;
 
 const std::map<std::string, INI::Section> INI::sections = {
 	{"DialogEvent",INI::DIALOG_EVENT},
-	{"Video",INI::VIDEO}
+	{"Video",INI::VIDEO},
+	{"Language", INI::LANGUAGE}
 };
 
 const std::map<std::string, INI::Parameters> INI::parameters = {
 	{ "END", INI::END },
 	{ "End", INI::END },
 	{ "Filename", INI::FILENAME },
-	{ "Comment", INI::COMMENT }
+	{ "Comment", INI::COMMENT },
+	{ "LocalFontFile", INI::LOCALFONTFILE }
 };
 
 bool INI::Parse(const std::string& content)
@@ -47,11 +49,7 @@ bool INI::Parse(const std::string& content)
 				sectionStr.erase(std::remove(sectionStr.begin(), sectionStr.end(), ' '), sectionStr.end());
 				auto it = sections.find(sectionStr);
 
-				if (it == sections.end())
-				{
-					//std::cout << "Unknown section in line: " << n << std::endl;
-				}
-				else 
+				if (it != sections.end())
 				{
 					auto sectionType = it->second;
 					switch (sectionType)
@@ -74,6 +72,12 @@ bool INI::Parse(const std::string& content)
 							sectionName.end(), ' '), sectionName.end());
 					}
 					break;
+					case LANGUAGE:
+					{
+						state = PARSE_LANGUAGE;
+						obj = std::make_shared<GameData::Language>();
+					}
+					break;
 					}
 				}
 			}
@@ -84,11 +88,7 @@ bool INI::Parse(const std::string& content)
 				pos = line.find('=');
 				std::string paramStr = line.substr(0, pos);
 				auto it = parameters.find(paramStr);
-				if (it == parameters.end())
-				{
-					//std::cout << "Unknown parameter \""<<paramStr<< "\" in line: " << n << std::endl;
-				}
-				else
+				if (it != parameters.end())
 				{
 					auto paramType = it->second;
 					switch (paramType)
@@ -96,18 +96,18 @@ bool INI::Parse(const std::string& content)
 						case END:
 						{
 							state = NEW_SECTION;
-							GameData::AddVideo(sectionName,std::dynamic_pointer_cast<GameData::Video>(obj));
+							GameData::AddVideo(sectionName, std::static_pointer_cast<GameData::Video>(obj));
 						}
 						break;
 						case FILENAME:
 						{
-							auto video = std::dynamic_pointer_cast<GameData::Video>(obj);
+							auto video = std::static_pointer_cast<GameData::Video>(obj);
 							video->filename = line.substr(pos+1, line.size());
 						}
 						break;
 						case COMMENT:
 						{
-							auto video = std::dynamic_pointer_cast<GameData::Video>(obj);
+							auto video = std::static_pointer_cast<GameData::Video>(obj);
 							video->comment = line.substr(pos+1, line.size());
 						}
 					}
@@ -121,11 +121,7 @@ bool INI::Parse(const std::string& content)
 				std::string paramStr = line.substr(0, pos);
 				auto it = parameters.find(paramStr);
 
-				if (it == parameters.end())
-				{
-					//std::cout << "Unknown parameter \""<<paramStr<< "\" in line: " << n << std::endl;
-				}
-				else
+				if (it != parameters.end())
 				{
 					auto paramType = it->second;
 					switch (paramType)
@@ -133,23 +129,51 @@ bool INI::Parse(const std::string& content)
 						case END:
 						{
 							state = NEW_SECTION;
-							GameData::AddDialogEvent(sectionName,std::dynamic_pointer_cast<GameData::DialogEvent>(obj));
+							GameData::AddDialogEvent(sectionName, std::static_pointer_cast<GameData::DialogEvent>(obj));
 						}
 						break;
 						case FILENAME:
 						{
-							auto video = std::dynamic_pointer_cast<GameData::DialogEvent>(obj);
+							auto video = std::static_pointer_cast<GameData::DialogEvent>(obj);
 							video->filename = line.substr(pos+1, line.size());
 						}
 						break;
 						case COMMENT:
 						{
-							auto video = std::dynamic_pointer_cast<GameData::Video>(obj);
+							auto video = std::static_pointer_cast<GameData::DialogEvent>(obj);
 							video->comment = line.substr(pos+1, line.size());
 						}
 					}
 				}
 			}
+			break;
+		case PARSE_LANGUAGE:
+		{
+			line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
+			pos = line.find('=');
+			std::string paramStr = line.substr(0, pos);
+			auto it = parameters.find(paramStr);
+
+			if (it != parameters.end())
+			{
+				auto paramType = it->second;
+				switch (paramType)
+				{
+				case END:
+				{
+					state = NEW_SECTION;
+					GameData::SetLanguage(std::static_pointer_cast<GameData::Language>(obj));
+				}
+					break;
+				case LOCALFONTFILE:
+				{
+					auto lang = std::static_pointer_cast<GameData::Language>(obj);
+					lang->fonts.push_back(line.substr(pos + 1, line.size()));
+				}
+					break;
+				}
+			}
+		}
 			break;
 		default:
 			break;

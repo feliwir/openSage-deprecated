@@ -202,13 +202,7 @@ namespace Game
 		static void KeyDown(sf::Event::KeyEvent& keyEv);
 		static void KeyUp(sf::Event::KeyEvent& keyEv);
 	private:
-		//INI paths
-		static const std::string videoINI;
-		static const std::string speechINI;
-		//DATA paths
-		static const std::string videoDIR;
-		static const std::string speechDIR;
-		static const std::string compiledtexDIR;
+
 		static std::shared_ptr<StateInfo> cState;
 		static int state_index;
 

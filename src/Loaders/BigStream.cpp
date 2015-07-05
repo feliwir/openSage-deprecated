@@ -22,7 +22,7 @@ BigStream::~BigStream()
 bool BigStream::open(const std::string& filename)
 {
 	entry = entries[filename];
-	
+	pos = 0;
 	if (entry)
 	{
 		cout << "Opening BigEntry: " + filename << endl;

@@ -12,12 +12,14 @@ namespace Game
 			NEW_SECTION			= 0,
 			PARSE_VIDEO			= 1,
 			PARSE_DIALOG_EVENT	= 2,
+			PARSE_LANGUAGE		= 3,
 		};
 
 		enum Section
 		{
 			VIDEO			= 0,
-			DIALOG_EVENT	= 1
+			DIALOG_EVENT	= 1,
+			LANGUAGE		= 2
 		};
 
 		enum Parameters
@@ -27,6 +29,7 @@ namespace Game
 			COMMENT			= 2,
 			VOLUME			= 3,
 			SUBMIX_SLIDER	= 4,
+			LOCALFONTFILE	= 5,
 		};
 
 		static const std::map<std::string, Section> sections;

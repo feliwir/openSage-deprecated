@@ -2,7 +2,7 @@
 #include "Loaders/BigStream.hpp"
 #include <SFML/System.hpp>
 #include <iostream>
-
+#include <algorithm>
 using namespace std;
 
 #ifdef SFML_SYSTEM_WINDOWS
@@ -19,7 +19,7 @@ using namespace boost::filesystem;
 void FileSystem::Initialize()
 {
 	auto files = getFiles(".",".big");
-	
+	std::reverse(files.begin(), files.end());
 	for (const auto& file : files)
 		BigStream::AddFile(file);
 

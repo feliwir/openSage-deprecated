@@ -1,5 +1,8 @@
 #pragma once
 #include <stdint.h>
+#include <memory>
+#include <glm/glm.hpp>
+#include "../Loaders/AptFile.hpp"
 
 namespace Script
 {
@@ -182,9 +185,18 @@ namespace Script
 			EA_BRANCHIFFALSE = 0xB8,
 			EA_PUSHREGISTER = 0xB9
 		};
+	private:
+		struct Function
+		{
+			uint32_t argCount;
+			std::vector<std::string> argNames;
+			uint8_t* body;
+		};
 
 	public:
 		static uint32_t GetBytecodeSize(uint8_t* bytecode);
+		static bool ExecuteBytecode(uint8_t* bytecode, Loaders::AptFile::DisplayItem& di,Loaders::AptFile::ConstData& data,uint8_t* base);
+
 	};
 
 }

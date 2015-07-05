@@ -6,69 +6,78 @@
 #include <sstream>
 #include <SFML/System.hpp>
 #include <SFML/Graphics.hpp>
+#include <glm/glm.hpp>
 #include "BigStream.hpp"
 
 
 namespace Loaders
 {
+
 	class AptFile
 	{
+	public:
+		struct DisplayItem
+		{
+			uint32_t ch;
+			std::shared_ptr<sf::Texture> texture;
+			glm::u8vec4 color;
+			glm::f32mat2 rotscale;
+			glm::f32vec2 translate;
+		};
+
+		//Const File
+		enum ConstItemType 
+		{
+			TYPE_UNDEF = 0,
+			TYPE_STRING = 1,
+			TYPE_NUMBER = 4,
+		};
+
+		struct ConstItem 
+		{
+			ConstItemType type;
+			uint32_t numvalue;
+			std::string strvalue;
+		};
+
+		struct ConstData 
+		{
+			uint32_t aptdataoffset;
+			uint32_t itemcount;
+			std::vector<ConstItem> items;
+		};
 	private:
 #pragma region AptFormat
-
-		struct Vector2 {
-			float X;
-			float Y;
-		};
-
-		struct Transform {
-			float m00;
-			float m01;
-			float m10;
-			float m11;
-		};
-
-		struct Rect
+		struct Tri 
 		{
-			float left;
-			float top;
-			float right;
-			float bottom;
+			glm::f32vec2 v1;
+			glm::f32vec2 v2;
+			glm::f32vec2 v3;
 		};
 
-		struct Tri {
-			Vector2 v1;
-			Vector2 v2;
-			Vector2 v3;
-		};
-
-		struct RGBA
+		struct Line 
 		{
-			uint8_t red;
-			uint8_t green;
-			uint8_t blue;
-			uint8_t alpha;
+			glm::f32vec2 v1;
+			glm::f32vec2 v2;
 		};
 
-		struct Line {
-			Vector2 v1;
-			Vector2 v2;
+		struct SolidStyle 
+		{
+			glm::u8vec4 color;
 		};
 
-		struct SolidStyle {
-			RGBA color;
-		};
-
-		struct LineStyle {
+		struct LineStyle 
+		{
 			uint32_t width;
-			RGBA color;
+			glm::u8vec4 color;
 		};
 
-		struct TextureStyle {
-			RGBA color;
+		struct TextureStyle 
+		{
+			glm::u8vec4 color;
 			uint32_t tex;
-			Transform rotateandscale;
-			Vector2 translate;
+			glm::f32vec4 rotateandscale;
+			glm::f32vec2 translate;
 		};
 
 		enum Commands
@@ -88,7 +97,8 @@ namespace Loaders
 			STYLE_TEXTURE = 2,
 		};
 
-		struct GeometryEntry {
+		struct GeometryEntry 
+		{
 			std::vector<Tri> tris;
 			std::vector <Line> lines;
 			std::vector <SolidStyle> solidstyles;
@@ -97,32 +107,6 @@ namespace Loaders
 			std::vector<Commands>	order;
 		};
 
-		struct Triangle {
-			uint16_t v1;
-			uint16_t v2;
-			uint16_t v3;
-		};
-
-		//Const File
-		enum ConstItemType {
-			TYPE_UNDEF = 0,
-			TYPE_STRING = 1,
-			TYPE_NUMBER = 4,
-		};
-
-		struct ConstItem {
-			ConstItemType type;
-			union {
-				const char *strvalue;
-				uint32_t numvalue;
-			};
-		};
-
-		struct ConstData {
-			uint32_t aptdataoffset;
-			uint32_t itemcount;
-			std::vector<ConstItem> items;
-		};
 
 		//Character
 		enum CharacterType {
@@ -137,7 +121,8 @@ namespace Loaders
 			TEXT = 10
 		};
 
-		struct Character {
+		struct Character 
+		{
 			uint32_t type;
 			uint32_t signature;
 		};
@@ -152,7 +137,6 @@ namespace Loaders
 			INITACTION = 8
 		};
 
-
 		struct FrameItem
 		{
 			uint32_t type;
@@ -160,7 +144,7 @@ namespace Loaders
 
 		struct BackgroundColor : public FrameItem
 		{
-			RGBA color;
+			glm::u8vec4 color;
 		};
 
 		struct Action : public FrameItem
@@ -192,14 +176,26 @@ namespace Loaders
 			std::vector<PlaceObjectAction> actions;
 		};
 
+		struct PoFlags
+		{
+			bool PlaceFlagMove : 1;
+			bool PlaceFlagHasCharacter : 1;
+			bool PlaceFlagHasMatrix : 1;
+			bool PlaceFlagHasColorTransform : 1;
+			bool PlaceFlagHasRatio : 1;
+			bool PlaceFlagHasName : 1;
+			bool PlaceFlagHasClipDepth : 1;
+			bool PlaceFlagHasClipActions : 1;
+		};
+
 		struct PlaceObject : public FrameItem 
 		{
-			uint32_t flags; //matches with PlaceObjectFlags
+			PoFlags flags; //matches with PlaceObjectFlags
 			int32_t depth;
 			int32_t character;
-			Transform rotateandscale;
-			Vector2 translate;
-			RGBA color;
+			glm::f32mat2 rotateandscale;
+			glm::f32vec2 translate;
+			glm::u8vec4 color;
 			uint32_t unknown; ///always zero as far as I can see
 			float ratio;
 			std::string name;
@@ -222,16 +218,16 @@ namespace Loaders
 
 		struct Shape : public Character 
 		{
-			Rect bounds;
+			glm::f32vec4 bounds;
 			uint32_t geometry;
 		};
 
 		struct EditText : public Character 
 		{
-			Rect bounds;
+			glm::f32vec4 bounds;
 			uint32_t font;
 			uint32_t alignment;
-			RGBA color;
+			glm::u8vec4 color;
 			float fontheight;
 			uint32_t readonly;
 			uint32_t multiline;
@@ -245,9 +241,13 @@ namespace Loaders
 			uint32_t framecount;
 			std::vector<Frame> frames; //offset of frame data
 			uint32_t cFrame;
+			std::map<uint32_t, DisplayItem> displayList;
+			std::vector<uint32_t> deleteList;
+			glm::f32mat2 rotscale;
+			glm::f32vec2 translate;
 		};
 
-		struct Movie : public Character
+		struct Movie : public Sprite
 		{
 			uint32_t framecount;
 			std::vector<Frame> frames;
@@ -258,13 +258,7 @@ namespace Loaders
 			uint32_t height;
 		};
 
-		struct DisplayItem
-		{
-			uint32_t ch;
-			sf::RenderStates rs;
-			RGBA color;
 
-		};
 #pragma endregion
 
 	private:
@@ -272,13 +266,27 @@ namespace Loaders
 		std::shared_ptr<Character> ParseCharacter(uint8_t*& buffer, uint8_t* base);
 		std::shared_ptr<FrameItem> ParseFrameItem(uint8_t*& buffer, uint8_t* base);
 
-		void UpdateFrame(Frame& frame);
+		void UpdateFrame(Frame& frame, DisplayItem& parent);
+		void UpdateTransform(PlaceObject& po, sf::Transform& t);
 
-		void RenderGeometry(sf::RenderWindow& win, DisplayItem& di);
+		void RenderGeometry(sf::RenderWindow& win, DisplayItem& di, glm::f32vec2 offset, glm::f32mat2 rotscale);
+		void Render(sf::RenderWindow& win, std::map<uint32_t, DisplayItem>& displaylist,glm::f32vec2 offset,glm::f32mat2 rotscale);
+
+		void Update(std::map<uint32_t, DisplayItem>& displaylist, std::vector<uint32_t>& deleteList);
 	public:
+
 		bool loadFromStream(sf::InputStream& aptStream, sf::InputStream& constStream, const std::string& name);
-		void Update();
-		void Render(sf::RenderWindow& win);
+		inline void Update()
+		{
+			Update(m_displaylist, m_deleteList);
+		}
+
+		inline void Render(sf::RenderWindow& win)
+		{
+			win.clear(m_bgColor);
+			Render(win, m_displaylist,glm::f32vec2(),glm::f32mat2());
+		}
+		
 		~AptFile();
 		AptFile();
 	private:
@@ -290,9 +298,9 @@ namespace Loaders
 		std::map<uint32_t, std::shared_ptr<sf::Texture>> m_textures;
 		std::map<uint32_t, std::shared_ptr<Character>> m_characters;
 		std::map<uint32_t, DisplayItem> m_displaylist;
-		std::map<std::string, sf::Font> m_fonts;
 		std::vector<uint32_t> m_deleteList;
 		uint32_t m_frame;
+		uint8_t* m_aptBuf;
 		sf::Color m_bgColor;
 	};
 }
