@@ -96,7 +96,7 @@ uint32_t AS::GetBytecodeSize(uint8_t* a)
 bool AS::ExecuteBytecode(uint8_t* a, Loaders::AptFile::DisplayItem& di, Loaders::AptFile::ConstData& data, uint8_t* apt)
 {
 	uint8_t* base = a;
-	std::stack<uint32_t> stack;
+	std::stack<StackValue> stack;
 	std::vector<Loaders::AptFile::ConstItem> entries;
 	std::map<std::string, Function> funcs;
 	ActionCode action;
@@ -178,14 +178,32 @@ bool AS::ExecuteBytecode(uint8_t* a, Loaders::AptFile::DisplayItem& di, Loaders:
 		case EA_CALLNAMEDFUNCTIONPOP:
 		case EA_CALLNAMEDFUNCTION:
 		case EA_CALLNAMEDMETHODPOP:
-		case EA_CALLNAMEDMETHOD:
-		case EA_PUSHCONSTANT:
-		case EA_PUSHVALUEOFVAR:
-		case EA_GETNAMEDMEMBER:
+		case EA_CALLNAMEDMETHOD:		
 		case EA_PUSHBYTE:
 		case EA_PUSHREGISTER:
 		{
 			a += 1;
+		}
+			break;
+		case EA_GETNAMEDMEMBER:
+		case EA_PUSHVALUEOFVAR:
+		case EA_PUSHCONSTANT:
+		{
+			auto id = Util::Read<uint8_t>(a);
+			auto item = entries[id];
+			StackValue val;
+			if (item.type == Loaders::AptFile::TYPE_NUMBER)
+			{
+				val.type = INTEGER;
+				val.integerVal = item.numvalue;
+			}
+			else if (item.type == Loaders::AptFile::TYPE_STRING)
+			{
+				val.type = STRING;
+				val.stringVal = item.strvalue;
+			}
+
+			stack.push(val);
 		}
 			break;
 		case EA_PUSHWORDCONSTANT:

@@ -193,6 +193,24 @@ namespace Script
 			uint8_t* body;
 		};
 
+		enum ValueType
+		{
+			CONSTANT	= 0,
+			STRING		= 1,
+			INTEGER		= 2,
+			LONG		= 3,
+			FLOAT		= 4
+		};
+
+		struct StackValue
+		{
+			ValueType type;
+			uint32_t constVal;
+			std::string stringVal;
+			uint32_t integerVal;
+
+		};
+
 	public:
 		static uint32_t GetBytecodeSize(uint8_t* bytecode);
 		static bool ExecuteBytecode(uint8_t* bytecode, Loaders::AptFile::DisplayItem& di,
