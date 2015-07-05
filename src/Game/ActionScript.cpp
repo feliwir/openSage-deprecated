@@ -147,7 +147,7 @@ bool AS::ExecuteBytecode(uint8_t* a, Loaders::AptFile::DisplayItem& di, Loaders:
 		{
 			ALIGN(a);
 			auto offset = apt + Util::Read<uint32_t>(a);
-			std::string name =  std::string(reinterpret_cast<char*>(offset));
+			std::string name =  std::string(reinterpret_cast<const char*>(offset));
 			Function func;
 			func.argCount = Util::Read<uint32_t>(a);
 			auto args = Util::Read<uint32_t>(a)+apt;
@@ -156,7 +156,7 @@ bool AS::ExecuteBytecode(uint8_t* a, Loaders::AptFile::DisplayItem& di, Loaders:
 			{
 				auto argOffset = args[i]+apt;
 				auto arg = Util::Read<uint32_t>(argOffset);
-				char* name = reinterpret_cast<char*>(arg + apt);
+				const char* name = reinterpret_cast<const char*>(arg + apt);
 				func.argNames.push_back(name);
 			}
 

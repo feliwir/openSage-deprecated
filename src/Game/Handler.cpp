@@ -10,10 +10,10 @@ using namespace Game;
 
 
 std::vector<Handler::LoadInfo> Handler::loadOrder = {
-	// Handler::LoadInfo("EALogoMovie", new Handler::CinematicArgs(false)),
-	// Handler::LoadInfo("NewLineLogo", new Handler::CinematicArgs(false)),
-	// Handler::LoadInfo("TolkienLogo", new Handler::CinematicArgs(false)),
-	// Handler::LoadInfo("Overall_Game_Intro", new Handler::CinematicArgs(true)),
+	Handler::LoadInfo("EALogoMovie", new Handler::CinematicArgs(false)),
+	Handler::LoadInfo("NewLineLogo", new Handler::CinematicArgs(false)),
+	Handler::LoadInfo("TolkienLogo", new Handler::CinematicArgs(false)),
+	Handler::LoadInfo("Overall_Game_Intro", new Handler::CinematicArgs(true)),
 	Handler::LoadInfo("LoadingRing", new Handler::LoadingScreenArgs("titlescreenuserinterface.jpg")),
 	Handler::LoadInfo("MainMenu", new Handler::AptArgs(""))
 };
@@ -63,6 +63,12 @@ void Handler::Initialize()
 void Handler::GetState()
 {
 	bool done = false;
+
+	if (loadOrder.back().loaded == true)
+	{
+		std::cout << "Finished game" << std::endl;
+	}
+	
 	for (auto& l : loadOrder)
 	{
 		if (l.loaded)
@@ -116,6 +122,8 @@ void Handler::GetState()
 				continue;
 
 			apt->loadFromStream(aptStream, constStream,l.name);
+			done = true;
+
 			cState = std::make_shared<AptInfo>(apt);
 		}
 			break;
@@ -153,13 +161,6 @@ void Handler::GetState()
 
 		if (done)
 			break;
-	}
-
-	
-	if (loadOrder.back().loaded == true)
-	{
-		//game done
-		int a = 0;
 	}
 }
 
@@ -214,7 +215,7 @@ void Handler::Update(sf::RenderWindow& m_window)
 	}
 }
 
-void Handler::KeyDown(sf::Event::KeyEvent& keyEv)
+void Handler::KeyDown(const sf::Event::KeyEvent& keyEv)
 {
 	switch (keyEv.code)
 	{
@@ -226,7 +227,7 @@ void Handler::KeyDown(sf::Event::KeyEvent& keyEv)
 	}
 }
 
-void Handler::KeyUp(sf::Event::KeyEvent& keyEv)
+void Handler::KeyUp(const sf::Event::KeyEvent& keyEv)
 {
 	switch (keyEv.code)
 	{

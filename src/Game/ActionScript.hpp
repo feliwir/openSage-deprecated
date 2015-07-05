@@ -195,7 +195,8 @@ namespace Script
 
 	public:
 		static uint32_t GetBytecodeSize(uint8_t* bytecode);
-		static bool ExecuteBytecode(uint8_t* bytecode, Loaders::AptFile::DisplayItem& di,Loaders::AptFile::ConstData& data,uint8_t* base);
+		static bool ExecuteBytecode(uint8_t* bytecode, Loaders::AptFile::DisplayItem& di,
+									Loaders::AptFile::ConstData& data,uint8_t* base);
 
 	};
 

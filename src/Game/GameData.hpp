@@ -35,12 +35,12 @@ public:
 		std::vector<std::string> fonts;
 	};
 public:
-	static inline void AddDialogEvent(std::string& name, std::shared_ptr<DialogEvent> speech)
+	static inline void AddDialogEvent(const std::string& name, const std::shared_ptr<DialogEvent> speech)
 	{
 		gd_dialogs[name] = speech;
 	}
 
-	static inline void AddVideo(std::string& name, std::shared_ptr<Video> video)
+	static inline void AddVideo(const std::string& name, const std::shared_ptr<Video> video)
 	{
 		gd_videos[name] = video;
 	}
@@ -55,7 +55,7 @@ public:
 		return gd_videos[name];
 	}
 
-	static inline void SetLanguage(std::shared_ptr<Language> lang)
+	static inline void SetLanguage(const std::shared_ptr<Language> lang)
 	{
 		gd_language = lang;
 
@@ -72,7 +72,7 @@ public:
 			if (!font.loadFromStream(*stream))
 				continue;
 
-			if (gd_defaultFont == __nullptr)
+			if (gd_defaultFont == nullptr)
 				gd_defaultFont = stream;
 
 			gd_fonts[font.getInfo().family] = stream;

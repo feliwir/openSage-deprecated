@@ -169,7 +169,7 @@ namespace Game
 				aptName = name;
 			}
 
-			inline std::string GetAptName()
+			inline const std::string GetAptName()
 			{
 				return aptName;
 			}
@@ -199,8 +199,8 @@ namespace Game
 	public:
 		static void Initialize();
 		static void Update(sf::RenderWindow& window);
-		static void KeyDown(sf::Event::KeyEvent& keyEv);
-		static void KeyUp(sf::Event::KeyEvent& keyEv);
+		static void KeyDown(const sf::Event::KeyEvent& keyEv);
+		static void KeyUp(const sf::Event::KeyEvent& keyEv);
 	private:
 
 		static std::shared_ptr<StateInfo> cState;
