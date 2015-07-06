@@ -1,3 +1,4 @@
+// (C) Stephan Vedder 2015
 #include "BigStream.hpp"
 #include "Util.hpp"
 #include <iostream>
@@ -5,7 +6,7 @@
 
 using namespace std;
 using namespace Util;
-
+using namespace Loaders;
 std::vector<std::shared_ptr<BigStream::BigFile>> BigStream::archives;
 std::map<std::string,std::shared_ptr<BigStream::BigEntry>> BigStream::entries;
 

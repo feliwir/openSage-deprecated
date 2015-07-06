@@ -1,3 +1,4 @@
+// (C) Stephan Vedder 2015
 #include "Handler.hpp"
 #include "GameData.hpp"
 #include "INI.hpp"
@@ -5,10 +6,11 @@
 #include "../FileSystem.hpp"
 #include <memory>
 
+using namespace Loaders;
 using namespace Game;
 
-
-
+//TODO: change this for different gametitles
+//currently set for bfme2
 std::vector<Handler::LoadInfo> Handler::loadOrder = {
 	Handler::LoadInfo("EALogoMovie", new Handler::CinematicArgs(false)),
 	Handler::LoadInfo("NewLineLogo", new Handler::CinematicArgs(false)),

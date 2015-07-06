@@ -1,9 +1,12 @@
+// (C) Stephan Vedder 2015
 #include "INI.hpp"
 #include "GameData.hpp"
 #include <memory>
 #include <sstream>
 #include <algorithm>
 #include <iostream>
+
+using namespace Loaders;
 using namespace Game;
 
 const std::map<std::string, INI::Section> INI::sections = {

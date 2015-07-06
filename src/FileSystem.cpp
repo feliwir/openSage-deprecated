@@ -1,8 +1,11 @@
+// (C) Stephan Vedder 2015
 #include "FileSystem.hpp"
 #include "Loaders/BigStream.hpp"
 #include <SFML/System.hpp>
 #include <iostream>
 #include <algorithm>
+
+using namespace Loaders;
 using namespace std;
 
 #ifdef SFML_SYSTEM_WINDOWS

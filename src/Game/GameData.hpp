@@ -1,3 +1,4 @@
+// (C) Stephan Vedder 2015
 #pragma once
 #include <map>
 #include <string>
@@ -8,13 +9,13 @@
 #include <SFML/Graphics/Font.hpp>
 #include "../Loaders/BigStream.hpp"
 
+using namespace Loaders;
+
 class GameData
 {
 public:
 	struct INIObject
-	{
-
-	};
+	{};
 
 	struct DialogEvent : INIObject
 	{

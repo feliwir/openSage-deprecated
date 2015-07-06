@@ -1,3 +1,4 @@
+// (C) Stephan Vedder 2015
 #pragma once
 #include <stdint.h>
 #include <vector>
@@ -12,7 +13,6 @@
 
 namespace Loaders
 {
-
 	class AptFile
 	{
 	public:
@@ -106,7 +106,6 @@ namespace Loaders
 			std::vector <TextureStyle> texturestyles;
 			std::vector<Commands>	order;
 		};
-
 
 		//Character
 		enum CharacterType {

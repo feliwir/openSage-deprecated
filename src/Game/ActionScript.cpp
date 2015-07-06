@@ -1,3 +1,4 @@
+// (C) Stephan Vedder 2015
 #include "ActionScript.hpp"
 #include "../Loaders/Util.hpp"
 #include <stack>

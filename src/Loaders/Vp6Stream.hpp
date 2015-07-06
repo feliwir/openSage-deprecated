@@ -1,3 +1,4 @@
+// (C) Stephan Vedder 2015
 #pragma once
 #include <string>
 #include <stdint.h>

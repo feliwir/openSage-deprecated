@@ -1,3 +1,4 @@
+// (C) Stephan Vedder 2015
 #include "Mp3Stream.hpp"
 #include "../AudioSystem.hpp"
 #include <iostream>

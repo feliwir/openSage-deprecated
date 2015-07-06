@@ -1,3 +1,4 @@
+// (C) Stephan Vedder 2015
 #include "Vp6Stream.hpp"
 #include "Util.hpp"
 #include "../VideoSystem.hpp"

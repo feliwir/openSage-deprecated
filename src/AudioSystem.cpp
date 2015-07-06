@@ -1,3 +1,4 @@
+// (C) Stephan Vedder 2015
 #include "AudioSystem.hpp"
 #include <mpg123.h>
 #include <iostream>

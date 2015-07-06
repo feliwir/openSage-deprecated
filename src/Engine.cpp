@@ -4,6 +4,7 @@
 #include "VideoSystem.hpp"
 #include "Game/Handler.hpp"
 #include <SFML/Audio.hpp>
+// (C) Stephan Vedder 2015
 #include <iostream>
 
 Engine::Engine()

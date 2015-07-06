@@ -1,3 +1,4 @@
+// (C) Stephan Vedder 2015
 #pragma once
 #include <fstream>
 #include <stdint.h>
@@ -23,7 +24,6 @@ namespace Util
 		buf += sizeof(T);
 		return result;
 	}
-
 
 	inline std::string ReadString(std::ifstream& fin)
 	{

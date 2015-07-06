@@ -1,3 +1,4 @@
+// (C) Stephan Vedder 2015
 #pragma once
 #include <SFML/Graphics.hpp>
 #include "Loaders/Vp6Stream.hpp"

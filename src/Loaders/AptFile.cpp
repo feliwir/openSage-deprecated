@@ -1,3 +1,4 @@
+// (C) Stephan Vedder 2015
 #include <iostream>
 #include <string>
 #include "AptFile.hpp"
