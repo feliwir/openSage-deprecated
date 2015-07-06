@@ -1,10 +1,10 @@
-// (C) Stephan Vedder 2015
+// Stephan Vedder 2015
 #include <iostream>
 #include <string>
 #include "AptFile.hpp"
 #include "Util.hpp"
 #include "BigStream.hpp"
-#include "../Game/ActionScript.hpp"
+#include "../Script/ActionScript.hpp"
 #include "../Game/GameData.hpp"
 
 using namespace Loaders;
@@ -528,7 +528,7 @@ void AptFile::UpdateFrame(Frame& frame, DisplayItem& parent)
 		{
 			auto action = std::static_pointer_cast<Action>(fi);
 			std::cout << "Execute action"  << std::endl;
-			Script::AS::ExecuteBytecode(action->bytecode,parent,m_data,m_aptBuf);
+			//Script::AS::ExecuteBytecode(action->bytecode,parent,m_data,m_aptBuf);
 			
 		}
 			break;

@@ -1,4 +1,4 @@
-// (C) Stephan Vedder 2015
+// Stephan Vedder 2015
 #pragma once
 #include <stdint.h>
 #include <vector>
@@ -9,7 +9,6 @@
 #include <SFML/Graphics.hpp>
 #include <glm/glm.hpp>
 #include "BigStream.hpp"
-
 
 namespace Loaders
 {

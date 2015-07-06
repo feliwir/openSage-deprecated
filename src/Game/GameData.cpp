@@ -1,4 +1,4 @@
-// (C) Stephan Vedder 2015
+// Stephan Vedder 2015
 #include "GameData.hpp"
 
 const std::string GameData::dataDIR = "data/";

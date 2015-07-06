@@ -1,4 +1,4 @@
-// (C) Stephan Vedder 2015
+// Stephan Vedder 2015
 #include "VideoSystem.hpp"
 #include <libavcodec/avcodec.h>
 #include <iostream>

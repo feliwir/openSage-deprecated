@@ -1,4 +1,4 @@
-// (C) Stephan Vedder 2015
+// Stephan Vedder 2015
 #pragma once
 #include <string>
 #include <vector> 

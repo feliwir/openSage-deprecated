@@ -1,11 +1,13 @@
+// Stephan Vedder 2015
 #include "Engine.hpp"
 #include "FileSystem.hpp"
 #include "AudioSystem.hpp"
 #include "VideoSystem.hpp"
 #include "Game/Handler.hpp"
 #include <SFML/Audio.hpp>
-// (C) Stephan Vedder 2015
+
 #include <iostream>
+#include "Config.hpp"
 
 Engine::Engine()
 {
@@ -31,7 +33,7 @@ Engine::~Engine()
 
 void Engine::Run()
 {
-	//m_window.create(sf::VideoMode(1920, 1080), "openSAGE", sf::Style::Fullscreen);
+	m_window.create(sf::VideoMode(Config::Width, Config::Height), Config::Title, Config::Fullscreen ? sf::Style::Fullscreen : sf::Style::None);
 
 	while (m_window.isOpen())
 	{	

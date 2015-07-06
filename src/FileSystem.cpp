@@ -1,4 +1,4 @@
-// (C) Stephan Vedder 2015
+// Stephan Vedder 2015
 #include "FileSystem.hpp"
 #include "Loaders/BigStream.hpp"
 #include <SFML/System.hpp>
