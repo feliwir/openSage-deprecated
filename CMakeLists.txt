@@ -73,6 +73,13 @@ message(STATUS "FFMPEG libraries: ${FFMPEG_LIBRARIES}")
 find_package (GLM REQUIRED)
 message(STATUS "GLM library: ${GLM_INCLUDE_DIR}")
 
+#################################################################################################################
+# ================================================= BOOST SETUP =============================================== #
+#################################################################################################################
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	find_package(Boost 1.5.0 COMPONENTS system filesystem REQUIRED)
+endif()
 
 #################################################################################################################
 # ============================================== openSage SETUP =============================================== #
@@ -80,7 +87,7 @@ message(STATUS "GLM library: ${GLM_INCLUDE_DIR}")
 
 file(GLOB_RECURSE SOURCE_FILES ${SOURCES_DIR}/[a-z,A-Z]*.[c,h]* ${SOURCES_DIR}/DebugTools/[a-z,A-Z]*.[c,h]*)
 
-set(OPENSAGE_INCLUDE_DIRS "${MPG123_INCLUDE_DIR};${SFML_INCLUDE_DIR};${FFMPEG_INCLUDE_DIRS};${GLM_INCLUDE_DIR}")
+set(OPENSAGE_INCLUDE_DIRS "${MPG123_INCLUDE_DIR};${SFML_INCLUDE_DIR};${FFMPEG_INCLUDE_DIRS};${GLM_INCLUDE_DIR};${Boost_INCLUDE_DIRS}")
 include_directories (${OPENSAGE_INCLUDE_DIRS})
 
 add_executable(${PROJ_NAME} ${SOURCE_FILES})
@@ -88,7 +95,7 @@ add_executable(${PROJ_NAME} ${SOURCE_FILES})
 target_compile_features(${PROJ_NAME} PRIVATE cxx_range_for)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set(ADDITIONAL_LIBS "-lboost_system -lboost_filesystem -lz -llzma -lva -lbz2 -lm -lpthread")
+    set(ADDITIONAL_LIBS "-llzma -lz -lva -lbz2 -lpthread ${Boost_LIBRARIES}")
 endif()
 
 if (OPENSAGE_BUILD_STATIC)
