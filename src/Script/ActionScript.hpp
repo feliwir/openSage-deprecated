@@ -151,8 +151,10 @@ namespace Script
 	private:
 		struct Function
 		{
+			std::string name;
 			uint32_t argCount;
 			std::vector<std::string> argNames;
+			uint32_t size;
 			uint8_t* body;
 		};
 

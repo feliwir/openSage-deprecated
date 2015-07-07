@@ -528,7 +528,7 @@ void AptFile::UpdateFrame(Frame& frame, DisplayItem& parent)
 		{
 			auto action = std::static_pointer_cast<Action>(fi);
 			std::cout << "Execute action"  << std::endl;
-			//Script::AS::ExecuteBytecode(action->bytecode,parent,m_data,m_aptBuf);
+			Script::AS::ExecuteBytecode(action->bytecode,parent,m_data,m_aptBuf);
 			
 		}
 			break;

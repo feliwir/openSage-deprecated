@@ -6,6 +6,7 @@ using namespace Script;
 #define STRLENGTH(x) (4 * ((((uint32_t)strlen(x) + 1) + 3)/4))
 #define GETALIGN(x) ((4 * ((x + 3) / 4)) - x)
 #define ALIGN(x) x = ((uint8_t *)(4 * ((((uintptr_t)x) + 3) / 4)))
+#define add(x) *((uint8_t **)&x) += (uintptr_t)apt; 
 
 uint32_t AS::GetBytecodeSize(uint8_t* a)
 {
@@ -130,11 +131,12 @@ bool AS::ExecuteBytecode(uint8_t* a, Loaders::AptFile::DisplayItem& di, Loaders:
 		{
 			ALIGN(a);
 			auto count = Util::Read<uint32_t>(a);
-			auto cpd = Util::Read<uint32_t>(a)+apt;
+			auto cpd = reinterpret_cast<uint32_t*>(Util::Read<uint32_t>(a)+apt);
 			
 			for (uint32_t i = 0; i < count; ++i)
 			{
-				entries.push_back(data.items[cpd[i]]);
+				auto id = data.items[cpd[i]];
+				entries.push_back(id);
 			}
 		}
 			break;
@@ -148,20 +150,23 @@ bool AS::ExecuteBytecode(uint8_t* a, Loaders::AptFile::DisplayItem& di, Loaders:
 		{
 			ALIGN(a);
 			auto offset = apt + Util::Read<uint32_t>(a);
-			std::string name =  std::string(reinterpret_cast<const char*>(offset));
 			Function func;
+			func.name =  std::string(reinterpret_cast<const char*>(offset));
 			func.argCount = Util::Read<uint32_t>(a);
-			auto args = Util::Read<uint32_t>(a)+apt;
+			add(*(uint32_t *)a);
+			char **args = (char **)(*(uint32_t *)a);
+			a += 4;
 
-			for (uint32_t i = 0; i < func.argCount; ++i)
+			for (uint32_t i = 0; i < func.argCount; i++)
 			{
-				auto argOffset = args[i]+apt;
-				auto arg = Util::Read<uint32_t>(argOffset);
-				const char* name = reinterpret_cast<const char*>(arg + apt);
-				func.argNames.push_back(name);
+				add(args[i]);
+				func.argNames.push_back(args[i]);
 			}
-
-			a += 12;
+			func.size = Util::Read<uint32_t>(a);
+			func.body = a;
+			a += func.size;
+			a += 8;
+			funcs[func.name] = func;
 		}
 			break;
 		case EA_PUSHSTRING:
