@@ -12,6 +12,8 @@ using namespace Util;
 
 #define CHAR_SIG 0x09876543
 
+std::map<std::string, std::shared_ptr<AptFile>> AptFile::aptfiles;
+
 bool AptFile::loadFromStream(sf::InputStream& aptStream, sf::InputStream& constStream,const std::string& name)
 {
 	m_name = name;
@@ -47,70 +49,81 @@ bool AptFile::loadFromStream(sf::InputStream& aptStream, sf::InputStream& constS
 	std::cout << "Parsed " << name << ".const";
 	delete[] constBuf;
 
+    BigStream datStream;
+    if (!datStream.open(name + ".dat"))
+    {
+        //no dat file present
+        return true;
+    }
+
+    uint8_t* datBuf = new uint8_t[datStream.getSize() + 1];
+    datStream.read(datBuf, datStream.getSize());
+    datBuf[datStream.getSize()] = 0;
+
+    std::string content = (char*)datBuf;
+    std::istringstream iss(content);
+    std::string line, strInt;
+    int n1 = 0, n2 = 0, pos;
+    while (std::getline(iss, line))
+    {
+        line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+        line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
+        if (line[0] == ';')
+            continue;
+
+        pos = line.find("->");
+        if (pos != std::string::npos)
+        {
+            strInt = line.substr(0, pos);
+            n1 = std::stoi(strInt);
+            strInt = line.substr(pos + 2, line.size());
+            n2 = std::stoi(strInt);
+            m_dat[n1] = n2;
+        }
+    }
+
+    delete[] datBuf;
+
+    for (auto& i : m_dat)
+    {
+        //insert texture if not in already
+        if (m_textures.find(i.second) == m_textures.end())
+        {
+            BigStream texStream;
+            if (!texStream.open("art/Textures/apt_" + name + "_" + std::to_string(i.second) + ".tga"))
+                continue;
+
+            sf::Image img;
+            img.loadFromStream(texStream);
+
+            std::shared_ptr<sf::Texture> tex = std::make_shared <sf::Texture>();
+            tex->loadFromImage(img);
+            tex->setSmooth(true);
+            m_textures[i.second] = tex;
+        }
+    }
+
+    std::cout << "Parsed " << name << ".dat" << std::endl;
+
 	m_aptBuf = new uint8_t[aptStream.getSize()];
 	aptStream.read(m_aptBuf, aptStream.getSize());
 	
 	iter = m_aptBuf + m_data.aptdataoffset;
 	m_characters[0] = ParseCharacter(iter, m_aptBuf);
-	DisplayItem di;
+	Object di;
 	di.ch = 0;
+    di.name = "_root";
+    Script::AS::Value val;
+    val.type = Script::AS::INTEGER;
+    val.integerVal = 0;
+    di.members["Initialized"] = val;
 	m_displaylist[0] = di;
 
 	std::cout << "Parsed " << name << ".apt" << std::endl;
 
-	BigStream datStream;
-	if(!datStream.open(name+".dat"))
-	{
-		//no dat file present
-		return true;
-	}
-	std::cout << "Parsed " << name << ".dat" << std::endl;
-	uint8_t* datBuf = new uint8_t[datStream.getSize()+1];
-	datStream.read(datBuf, datStream.getSize());
-	datBuf[datStream.getSize()] = 0;
+    if (aptfiles[name] == nullptr)
+        aptfiles[name] = std::shared_ptr<AptFile>(this);
 
-	std::string content = (char*)datBuf;
-	std::istringstream iss(content);
-	std::string line,strInt;
-	int n1 = 0, n2 = 0, pos;
-	while (std::getline(iss, line))
-	{
-		line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
-		line.erase(std::remove(line.begin(), line.end(), ' '), line.end());
-		if (line[0] == ';')
-			continue;
-
-		pos = line.find("->");
-		if (pos != std::string::npos)
-		{
-		strInt = line.substr(0, pos);
-		n1 = std::stoi(strInt);
-		strInt = line.substr(pos+2, line.size());
-		n2 = std::stoi(strInt);
-		m_dat[n1] = n2;
-		}
-	}
-
-	delete[] datBuf;
-
-	for (auto& i : m_dat)
-	{
-		//insert texture if not in already
-		if (m_textures.find(i.second) == m_textures.end())
-		{
-			BigStream texStream;
-			if (!texStream.open("art/Textures/apt_" + name + "_"+std::to_string(i.second) + ".tga"))
-				continue;
-
-			sf::Image img;
-			img.loadFromStream(texStream);
-
-			std::shared_ptr<sf::Texture> tex = std::make_shared <sf::Texture>();
-			tex->loadFromImage(img);
-			tex->setSmooth(true);
-			m_textures[i.second] = tex;
-		}
-	}
 	return true;
 }
 
@@ -135,7 +148,7 @@ AptFile::GeometryEntry AptFile::ParseGeometry(const std::string& name)
 	std::istringstream iss(content);
 	std::string line;
 	std::string param;
-	int n1 = 0, n2 = 0, pos;
+	int n1 = 0, n2 = 0;
 	bool valid = false;
 	while (std::getline(iss, line))
 	{
@@ -167,7 +180,7 @@ AptFile::GeometryEntry AptFile::ParseGeometry(const std::string& name)
 					TextureStyle ts;
 					ts.color = {std::stoi(params[1]), std::stoi(params[2]), 
 								std::stoi(params[3]), std::stoi(params[4])};
-					ts.tex = std::stoi(params[5]);
+                    ts.tex = m_textures[m_dat[std::stoi(params[5])]];
 					ts.rotateandscale ={std::stof(params[6]), std::stof(params[7]),
 										std::stof(params[8]), std::stof(params[9])};
 					ts.translate = {std::stof(params[10]), std::stof(params[11])};
@@ -237,7 +250,7 @@ std::shared_ptr<AptFile::Character> AptFile::ParseCharacter(uint8_t*& buf,uint8_
 			auto sh = std::make_shared<Shape>();
 			sh->bounds = Read<glm::f32vec4>(buf);
 			sh->geometry = Read<uint32_t>(buf);
-			m_geometry[sh->geometry] = ParseGeometry(m_name + "_geometry/" + std::to_string(sh->geometry) + ".ru");
+			sh->data = ParseGeometry(m_name + "_geometry/" + std::to_string(sh->geometry) + ".ru");
 			result = sh;
 		}
 			break;
@@ -267,7 +280,7 @@ std::shared_ptr<AptFile::Character> AptFile::ParseCharacter(uint8_t*& buf,uint8_
 			font->name = std::string(name);
 			font->glyphcount = Read<uint32_t>(buf);
 			auto glyphOffset = Read<uint32_t>(buf)+base;
-			for (auto i = 0; i < font->glyphcount; ++i)
+			for (uint32_t i = 0; i < font->glyphcount; ++i)
 			{
 				font->glyphs.push_back(Read<uint32_t>(buf));
 			}
@@ -281,12 +294,12 @@ std::shared_ptr<AptFile::Character> AptFile::ParseCharacter(uint8_t*& buf,uint8_
 			auto sprite = std::make_shared<Sprite>();
 			sprite->framecount = Read<uint32_t>(buf);
 			auto frameOffset = Read<uint32_t>(buf)+base;
-			for (auto i = 0; i < sprite->framecount; ++i)
+			for (uint32_t i = 0; i < sprite->framecount; ++i)
 			{
 				Frame f;
 				f.frameitemcount = Read<uint32_t>(frameOffset);
 				auto itemsOffset = Read<uint32_t>(frameOffset)+base;
-				for (auto j = 0; j < f.frameitemcount; ++j)
+				for (uint32_t j = 0; j < f.frameitemcount; ++j)
 				{
 					auto itemOffset = Read<uint32_t>(itemsOffset)+base;
 					f.frameitems.push_back(ParseFrameItem(itemOffset, base));
@@ -305,12 +318,12 @@ std::shared_ptr<AptFile::Character> AptFile::ParseCharacter(uint8_t*& buf,uint8_
 			movie->framecount = Read<uint32_t>(buf);
 
 			auto frameOffset = Read<uint32_t>(buf)+base;
-			for (auto i = 0; i < movie->framecount; ++i)
+			for (uint32_t i = 0; i < movie->framecount; ++i)
 			{
 				Frame f;
 				f.frameitemcount = Read<uint32_t>(frameOffset);
 				auto itemsOffset = Read<uint32_t>(frameOffset)+base;
-				for (auto j = 0; j < f.frameitemcount;  ++j)
+				for (uint32_t j = 0; j < f.frameitemcount; ++j)
 				{
 					auto itemOffset = Read<uint32_t>(itemsOffset)+base;
 					f.frameitems.push_back(ParseFrameItem(itemOffset, base));
@@ -321,7 +334,7 @@ std::shared_ptr<AptFile::Character> AptFile::ParseCharacter(uint8_t*& buf,uint8_
 			movie->cFrame = Read<uint32_t>(buf);
 			movie->charactercount = Read<uint32_t>(buf);
 			auto charactersOffset = Read<uint32_t>(buf) + base;
-			for (auto i = 0; i < movie->charactercount; ++i)
+			for (uint32_t i = 0; i < movie->charactercount; ++i)
 			{
 				auto fileOffset = Read<uint32_t>(charactersOffset);
 				if (fileOffset)
@@ -338,8 +351,54 @@ std::shared_ptr<AptFile::Character> AptFile::ParseCharacter(uint8_t*& buf,uint8_
 					m_characters[i] = nullptr;
 				}
 			}
+
 			movie->width = Read<uint32_t>(buf);
 			movie->height = Read<uint32_t>(buf);
+            movie->unknown = Read<uint32_t>(buf);
+            movie->importcount = Read<uint32_t>(buf);
+            auto importOffset = Read<uint32_t>(buf) +base;
+            
+            for (uint32_t i = 0; i < movie->importcount; ++i)
+            {
+                Import im;
+                char* movieStr = reinterpret_cast<char*>(Read<uint32_t>(importOffset)+base);
+                im.movie = std::string(movieStr);
+                char* name = reinterpret_cast<char*>(Read<uint32_t>(importOffset)+base);
+                im.name = std::string(name);
+                im.character = Read<uint32_t>(importOffset);
+                im.pointer = Read<uint32_t>(importOffset);
+
+                if (aptfiles[im.movie] == nullptr)
+                {
+                    aptfiles[im.movie] = std::make_shared<AptFile>();
+                    BigStream aptStream;
+                    if (!aptStream.open(im.movie + ".apt"))
+                        continue;
+
+                    BigStream constStream;
+                    if (!constStream.open(im.movie + ".const"))
+                        continue;
+
+                    aptfiles[im.movie]->loadFromStream(aptStream, constStream, im.movie);
+                }
+
+                m_characters[im.character] = aptfiles[im.movie]->GetExport(im.name);
+                movie->imports.push_back(im);
+            }
+
+            movie->exportcount = Read<uint32_t>(buf);
+            auto exportOffset = Read<uint32_t>(buf) +base;
+
+            for (uint32_t i = 0; i < movie->exportcount; ++i)
+            {
+                Export exp;
+                char* name = reinterpret_cast<char*>(Read<uint32_t>(exportOffset)+base);
+                exp.name = std::string(name);
+                exp.character = Read<uint32_t>(exportOffset);
+                movie->exports.push_back(exp);
+            }
+               
+
 			result = movie;
 		}
 		break;
@@ -424,7 +483,7 @@ std::shared_ptr<AptFile::FrameItem> AptFile::ParseFrameItem(uint8_t*& buf, uint8
 	return result;
 }
 
-void AptFile::Update(std::map<uint32_t, DisplayItem>& displaylist, std::vector<uint32_t>& deleteList)
+void AptFile::Update(std::map<uint32_t, Object>& displaylist, std::vector<uint32_t>& deleteList)
 {
 	std::cout << "Updating frame " << m_frame << std::endl;
 
@@ -445,7 +504,7 @@ void AptFile::Update(std::map<uint32_t, DisplayItem>& displaylist, std::vector<u
 			auto& f = m->frames[m->cFrame];
 			UpdateFrame(f,di);
 			Update(m->displayList,m->deleteList);
-			++m->cFrame;
+            ++m->cFrame;
 
 		}
 			break;
@@ -456,7 +515,7 @@ void AptFile::Update(std::map<uint32_t, DisplayItem>& displaylist, std::vector<u
 			auto& f = sp->frames[sp->cFrame];
 			UpdateFrame(f,di);
 			Update(sp->displayList, sp->deleteList);
-			++sp->cFrame;
+            ++sp->cFrame;
 		}
 			break;
 		}
@@ -467,10 +526,9 @@ void AptFile::Update(std::map<uint32_t, DisplayItem>& displaylist, std::vector<u
 		displaylist.erase(ro);
 	}
 
-	++m_frame;
 }
 
-void AptFile::UpdateFrame(Frame& frame, DisplayItem& parent)
+void AptFile::UpdateFrame(Frame& frame, Object& parent)
 {
 	for (auto& fi : frame.frameitems)
 	{
@@ -487,7 +545,7 @@ void AptFile::UpdateFrame(Frame& frame, DisplayItem& parent)
 
 			if (po->character < 0)
 			{
-				std::cout << "Editing displayItem at depth " << po->depth << std::endl;
+				std::cout << "Editing Object at depth " << po->depth << std::endl;
 				
 				auto di = sp->displayList[po->depth];
 				std::cout << "Transforming character " << di.ch << " (" 
@@ -503,8 +561,8 @@ void AptFile::UpdateFrame(Frame& frame, DisplayItem& parent)
 			}
 			else
 			{
-				std::cout << "Creating displayItem at depth " << po->depth << " from character "<< po->character << std::endl;
-				DisplayItem di;
+				std::cout << "Creating Object at depth " << po->depth << " from character "<< po->character << std::endl;
+				Object di;
 				di.ch = po->character;
 
 				di.color = po->color;
@@ -528,15 +586,14 @@ void AptFile::UpdateFrame(Frame& frame, DisplayItem& parent)
 		{
 			auto action = std::static_pointer_cast<Action>(fi);
 			std::cout << "Execute action"  << std::endl;
-			Script::AS::ExecuteBytecode(action->bytecode,parent,m_data,m_aptBuf);
-			
+			//Script::AS::ExecuteBytecode(action->bytecode,this);			
 		}
 			break;
 		}
 	}
 }
 
-void AptFile::Render(sf::RenderWindow& win, std::map<uint32_t, DisplayItem>& displaylist, glm::vec2 offset, glm::f32mat2 rotscale)
+void AptFile::Render(sf::RenderWindow& win, std::map<uint32_t, Object>& displaylist, glm::vec2 offset, glm::f32mat2 rotscale)
 {
 	sf::View v;
 	v.setCenter(sf::Vector2f(512, 384));
@@ -567,7 +624,6 @@ void AptFile::Render(sf::RenderWindow& win, std::map<uint32_t, DisplayItem>& dis
 		case SHAPE:
 		{
 			auto sh = std::static_pointer_cast<Shape>(ch);
-			auto& geometry = m_geometry[sh->geometry];
 			sf::VertexArray va;
 			RenderGeometry(win, di,offset,rotscale);
 		}
@@ -592,7 +648,7 @@ void AptFile::Render(sf::RenderWindow& win, std::map<uint32_t, DisplayItem>& dis
 	}
 }
 
-void AptFile::RenderGeometry(sf::RenderWindow& win, DisplayItem& di, glm::f32vec2 offset, glm::f32mat2 rotscale)
+void AptFile::RenderGeometry(sf::RenderWindow& win, Object& di, glm::f32vec2 offset, glm::f32mat2 rotscale)
 {
 	uint32_t cTri = 0, cLine = 0, cSS = 0, cTS = 0, cLS = 0;
 	SolidStyle ss;
@@ -602,7 +658,7 @@ void AptFile::RenderGeometry(sf::RenderWindow& win, DisplayItem& di, glm::f32vec
 	auto& ch = m_characters[di.ch];
 	
 	auto sh = std::static_pointer_cast<Shape>(ch);
-	auto& geometry = m_geometry[sh->geometry];
+    auto& geometry = sh->data;
 
 	for (auto& c : geometry.order)
 	{
@@ -640,8 +696,7 @@ void AptFile::RenderGeometry(sf::RenderWindow& win, DisplayItem& di, glm::f32vec
 		{
 			cS = STYLE_TEXTURE;
 			ts = geometry.texturestyles[cTS];
-			auto id = m_dat[ts.tex];
-			auto tex = m_textures[id];
+			auto tex = ts.tex;
 			di.texture = tex;
 			++cTS;
 		}

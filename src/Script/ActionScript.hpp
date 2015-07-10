@@ -2,8 +2,15 @@
 #pragma once
 #include <stdint.h>
 #include <memory>
+#include <string>
+#include <map>
+#include <vector>
 #include <glm/glm.hpp>
-#include "../Loaders/AptFile.hpp"
+
+namespace Loaders
+{
+    class AptFile;
+}
 
 namespace Script
 {
@@ -148,7 +155,7 @@ namespace Script
 			EA_BRANCHIFFALSE = 0xB8,
 			EA_PUSHREGISTER = 0xB9
 		};
-	private:
+	
 		struct Function
 		{
 			std::string name;
@@ -157,30 +164,32 @@ namespace Script
 			uint32_t size;
 			uint8_t* body;
 		};
-
+    public:
 		enum ValueType
 		{
-			CONSTANT	= 0,
-			STRING		= 1,
-			INTEGER		= 2,
-			LONG		= 3,
-			FLOAT		= 4
+            UNDEFINED   = 0,
+			CONSTANT	= 1,
+			STRING		= 2,
+			INTEGER		= 3,
+			LONG		= 4,
+			FLOAT		= 5
 		};
 
-		struct StackValue
+		struct Value
 		{
 			ValueType type;
 			uint32_t constVal;
 			std::string stringVal;
 			uint32_t integerVal;
-
 		};
 
+        struct Context
+        {
+            std::map<std::string, Value> vars;
+        };
 	public:
 		static uint32_t GetBytecodeSize(uint8_t* bytecode);
-		static bool ExecuteBytecode(uint8_t* bytecode, Loaders::AptFile::DisplayItem& di,
-									Loaders::AptFile::ConstData& data,uint8_t* base);
-
+		static bool ExecuteBytecode(uint8_t* bytecode, Loaders::AptFile* apt);
 	};
 
 }

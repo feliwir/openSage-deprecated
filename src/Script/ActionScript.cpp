@@ -1,12 +1,15 @@
 // Stephan Vedder 2015
 #include "ActionScript.hpp"
 #include "../Loaders/Util.hpp"
+#include "../Loaders/AptFile.hpp"
 #include <stack>
+
 using namespace Script;
+
 #define STRLENGTH(x) (4 * ((((uint32_t)strlen(x) + 1) + 3)/4))
 #define GETALIGN(x) ((4 * ((x + 3) / 4)) - x)
 #define ALIGN(x) x = ((uint8_t *)(4 * ((((uintptr_t)x) + 3) / 4)))
-#define add(x) *((uint8_t **)&x) += (uintptr_t)apt; 
+#define add(x) *((uint8_t **)&x) += (uintptr_t)apt->GetMemory(); 
 
 uint32_t AS::GetBytecodeSize(uint8_t* a)
 {
@@ -95,11 +98,11 @@ uint32_t AS::GetBytecodeSize(uint8_t* a)
 	return size;
 }
 
-bool AS::ExecuteBytecode(uint8_t* a, Loaders::AptFile::DisplayItem& di, Loaders::AptFile::ConstData& data, uint8_t* apt)
+bool AS::ExecuteBytecode(uint8_t* a, Loaders::AptFile* apt)
 {
 	uint8_t* base = a;
-	std::stack<StackValue> stack;
-	std::vector<Loaders::AptFile::ConstItem> entries;
+    std::stack<Value> stack;
+	std::vector<Loaders::AptFile::ConstItem> cpool;
 	std::map<std::string, Function> funcs;
 	ActionCode action;
 	do
@@ -108,8 +111,41 @@ bool AS::ExecuteBytecode(uint8_t* a, Loaders::AptFile::DisplayItem& di, Loaders:
 		a++;
 		switch (action)
 		{
+        case ACTION_SETMEMBER:
+        {
+            auto valStr = stack.top();
+            stack.pop();
+            auto nameStr = stack.top();
+            stack.pop();
+            auto objectStr = stack.top();
+            stack.pop();
+            auto object = apt->GetObject(objectStr.stringVal);
+            object.members[nameStr.stringVal] = valStr;
+        }
+            break;
+        case ACTION_GETVARIABLE:
+        {
+
+        }
+            break;
+        case ACTION_SETVARIABLE:
+        {
+            auto val = stack.top();
+            stack.pop();
+            auto name = stack.top();
+            stack.pop();
+            apt->GetContext().vars[name.stringVal] = val;
+        }
+            break;
+        case ACTION_BRANCHIFTRUE:
+        {
+            ALIGN(a);
+            auto cond = stack.top();
+            stack.pop();
+            if (cond.integerVal)
+                a += Util::Read<int32_t>(a);
+        }
 		case ACTION_BRANCHALWAYS:
-		case ACTION_BRANCHIFTRUE:
 		case EA_BRANCHIFFALSE:
 		case ACTION_GOTOFRAME:
 		case ACTION_SETREGISTER:
@@ -121,22 +157,48 @@ bool AS::ExecuteBytecode(uint8_t* a, Loaders::AptFile::DisplayItem& di, Loaders:
 		}
 			break;
 		case ACTION_GETURL:
-		case ACTION_PUSHDATA:
 		{
 			ALIGN(a);
 			a += 8;
+		}
+			break;
+		case ACTION_PUSHDATA:
+		{
+			ALIGN(a);
+			auto count = Util::Read<uint32_t>(a);
+			add(*(uint32_t *)a);
+			uint32_t *pid = *(uint32_t **)a;
+			a += 4;
+
+			for (uint32_t i = 0; i < count; ++i)
+			{
+				auto item = apt->GetConstData().items[pid[i]];
+                Value val;
+				if (item.type == Loaders::AptFile::TYPE_NUMBER)
+				{
+					val.type = INTEGER;
+					val.integerVal = item.numvalue;
+				}
+				else if (item.type == Loaders::AptFile::TYPE_STRING)
+				{
+					val.type = STRING;
+					val.stringVal = item.strvalue;
+				}
+
+				stack.push(val);
+			}
 		}
 			break;
 		case ACTION_CONSTANTPOOL:
 		{
 			ALIGN(a);
 			auto count = Util::Read<uint32_t>(a);
-			auto cpd = reinterpret_cast<uint32_t*>(Util::Read<uint32_t>(a)+apt);
+			auto cpd = reinterpret_cast<const uint32_t*>(Util::Read<uint32_t>(a)+apt->GetMemory());
 			
 			for (uint32_t i = 0; i < count; ++i)
 			{
-				auto id = data.items[cpd[i]];
-				entries.push_back(id);
+                auto item = apt->GetConstData().items[cpd[i]];
+                cpool.push_back(item);
 			}
 		}
 			break;
@@ -149,7 +211,7 @@ bool AS::ExecuteBytecode(uint8_t* a, Loaders::AptFile::DisplayItem& di, Loaders:
 		case ACTION_DEFINEFUNCTION:
 		{
 			ALIGN(a);
-			auto offset = apt + Util::Read<uint32_t>(a);
+			auto offset = apt->GetMemory() + Util::Read<uint32_t>(a);
 			Function func;
 			func.name =  std::string(reinterpret_cast<const char*>(offset));
 			func.argCount = Util::Read<uint32_t>(a);
@@ -191,13 +253,20 @@ bool AS::ExecuteBytecode(uint8_t* a, Loaders::AptFile::DisplayItem& di, Loaders:
 			a += 1;
 		}
 			break;
-		case EA_GETNAMEDMEMBER:
-		case EA_PUSHVALUEOFVAR:
+        case ACTION_LOGICALNOT:
+        {
+            auto val = stack.top();
+            stack.pop();
+            val.integerVal = !val.integerVal;
+            stack.push(val);
+        }
+            break;
+        case EA_PUSHVALUEOFVAR:
 		case EA_PUSHCONSTANT:
 		{
 			auto id = Util::Read<uint8_t>(a);
-			auto item = entries[id];
-			StackValue val;
+            auto item = cpool[id];
+			Value val;
 			if (item.type == Loaders::AptFile::TYPE_NUMBER)
 			{
 				val.type = INTEGER;
@@ -212,6 +281,29 @@ bool AS::ExecuteBytecode(uint8_t* a, Loaders::AptFile::DisplayItem& di, Loaders:
 			stack.push(val);
 		}
 			break;
+        case EA_GETNAMEDMEMBER:
+        {
+
+            auto id = Util::Read<uint8_t>(a);
+            auto item = cpool[id];
+            Value member;
+            if (item.type == Loaders::AptFile::TYPE_NUMBER)
+            {
+                member.type = INTEGER;
+                member.integerVal = item.numvalue;
+            }
+            else if (item.type == Loaders::AptFile::TYPE_STRING)
+            {
+                member.type = STRING;
+                member.stringVal = item.strvalue;
+            }
+
+            auto objectStr = stack.top();
+            stack.pop();
+            auto object = apt->GetObject(objectStr.stringVal);
+            stack.push(object.members[member.stringVal]);
+        }
+            break;
 		case EA_PUSHWORDCONSTANT:
 		case EA_PUSHSHORT:
 		{

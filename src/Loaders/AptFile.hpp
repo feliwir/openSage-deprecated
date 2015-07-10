@@ -9,19 +9,22 @@
 #include <SFML/Graphics.hpp>
 #include <glm/glm.hpp>
 #include "BigStream.hpp"
+#include "../Script/ActionScript.hpp"
 
 namespace Loaders
 {
 	class AptFile
 	{
 	public:
-		struct DisplayItem
+		struct Object
 		{
 			uint32_t ch;
 			std::shared_ptr<sf::Texture> texture;
 			glm::u8vec4 color;
 			glm::f32mat2 rotscale;
 			glm::f32vec2 translate;
+            std::string name;
+            std::map<std::string, Script::AS::Value> members;
 		};
 
 		//Const File
@@ -74,7 +77,7 @@ namespace Loaders
 		struct TextureStyle 
 		{
 			glm::u8vec4 color;
-			uint32_t tex;
+            std::shared_ptr<sf::Texture> tex;
 			glm::f32vec4 rotateandscale;
 			glm::f32vec2 translate;
 		};
@@ -218,6 +221,7 @@ namespace Loaders
 		{
 			glm::f32vec4 bounds;
 			uint32_t geometry;
+            GeometryEntry data;
 		};
 
 		struct EditText : public Character 
@@ -239,11 +243,25 @@ namespace Loaders
 			uint32_t framecount;
 			std::vector<Frame> frames; //offset of frame data
 			uint32_t cFrame;
-			std::map<uint32_t, DisplayItem> displayList;
+            std::map<uint32_t, Object> displayList;
 			std::vector<uint32_t> deleteList;
 			glm::f32mat2 rotscale;
 			glm::f32vec2 translate;
 		};
+
+        struct Import
+        {
+            std::string movie;
+            std::string name;
+            uint32_t character;
+            uint32_t pointer; //always zero, used at runtime
+        };
+
+        struct Export
+        {
+            std::string name;
+            uint32_t character;
+        };
 
 		struct Movie : public Sprite
 		{
@@ -254,8 +272,12 @@ namespace Loaders
 			std::vector<std::shared_ptr<Character>> characters;
 			uint32_t width;
 			uint32_t height;
+            uint32_t unknown;
+            uint32_t importcount;
+            std::vector<Import> imports;
+            uint32_t exportcount;
+            std::vector<Export> exports;
 		};
-
 
 #pragma endregion
 
@@ -264,16 +286,16 @@ namespace Loaders
 		std::shared_ptr<Character> ParseCharacter(uint8_t*& buffer, uint8_t* base);
 		std::shared_ptr<FrameItem> ParseFrameItem(uint8_t*& buffer, uint8_t* base);
 
-		void UpdateFrame(Frame& frame, DisplayItem& parent);
+        void UpdateFrame(Frame& frame, Object& parent);
 		void UpdateTransform(PlaceObject& po, sf::Transform& t);
 
-		void RenderGeometry(sf::RenderWindow& win, DisplayItem& di, glm::f32vec2 offset, glm::f32mat2 rotscale);
-		void Render(sf::RenderWindow& win, std::map<uint32_t, DisplayItem>& displaylist,glm::f32vec2 offset,glm::f32mat2 rotscale);
+        void RenderGeometry(sf::RenderWindow& win, Object& di, glm::f32vec2 offset, glm::f32mat2 rotscale);
+        void Render(sf::RenderWindow& win, std::map<uint32_t, Object>& displaylist, glm::f32vec2 offset, glm::f32mat2 rotscale);
 
-		void Update(std::map<uint32_t, DisplayItem>& displaylist, std::vector<uint32_t>& deleteList);
+        void Update(std::map<uint32_t, Object>& displaylist, std::vector<uint32_t>& deleteList);
 	public:
+	    bool loadFromStream(sf::InputStream& aptStream, sf::InputStream& constStream, const std::string& name);
 
-		bool loadFromStream(sf::InputStream& aptStream, sf::InputStream& constStream, const std::string& name);
 		inline void Update()
 		{
 			Update(m_displaylist, m_deleteList);
@@ -284,21 +306,63 @@ namespace Loaders
 			win.clear(m_bgColor);
 			Render(win, m_displaylist,glm::f32vec2(),glm::f32mat2());
 		}
-		
+
+        inline std::shared_ptr<Character> GetCharacter(const uint32_t id)
+        {
+            return m_characters[id];
+        }
+
+        inline Object& GetObject(const std::string& name)
+        {
+            for (auto& o : m_displaylist)
+            {
+                if (o.second.name == name)
+                    return o.second;
+            }
+
+            return Object();
+        }
+
+        inline ConstData& GetConstData()
+        {
+            return m_data;
+        }
+
+        inline const uint8_t* GetMemory()
+        {
+            return m_aptBuf;
+        }
+
+        inline Script::AS::Context& GetContext()
+        {
+            return m_asCtx;
+        }
+
+        inline std::shared_ptr<Character> GetExport(const std::string& name)
+        {
+            auto movie = std::static_pointer_cast<Movie>(m_characters[0]);
+            for (auto& e : movie->exports)
+            {
+                if (e.name == name)
+                    return m_characters[e.character];
+            }
+        }
+
 		~AptFile();
 		AptFile();
 	private:
 		std::string m_name;
 		ConstData m_data;
 		Movie m_movie;
-		std::map<uint32_t, GeometryEntry> m_geometry;
 		std::map<uint32_t, uint32_t> m_dat;
 		std::map<uint32_t, std::shared_ptr<sf::Texture>> m_textures;
 		std::map<uint32_t, std::shared_ptr<Character>> m_characters;
-		std::map<uint32_t, DisplayItem> m_displaylist;
+		std::map<uint32_t, Object> m_displaylist;
 		std::vector<uint32_t> m_deleteList;
+        Script::AS::Context m_asCtx;
 		uint32_t m_frame;
 		uint8_t* m_aptBuf;
 		sf::Color m_bgColor;
+        static std::map<std::string, std::shared_ptr<AptFile>> aptfiles;
 	};
 }

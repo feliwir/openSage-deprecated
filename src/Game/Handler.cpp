@@ -12,10 +12,10 @@ using namespace Game;
 //TODO: change this for different gametitles
 //currently set for bfme2
 std::vector<Handler::LoadInfo> Handler::loadOrder = {
-	Handler::LoadInfo("EALogoMovie", new Handler::CinematicArgs(false)),
-	Handler::LoadInfo("NewLineLogo", new Handler::CinematicArgs(false)),
-	Handler::LoadInfo("TolkienLogo", new Handler::CinematicArgs(false)),
-	Handler::LoadInfo("Overall_Game_Intro", new Handler::CinematicArgs(true)),
+	//Handler::LoadInfo("EALogoMovie", new Handler::CinematicArgs(false)),
+	//Handler::LoadInfo("NewLineLogo", new Handler::CinematicArgs(false)),
+	//Handler::LoadInfo("TolkienLogo", new Handler::CinematicArgs(false)),
+	//Handler::LoadInfo("Overall_Game_Intro", new Handler::CinematicArgs(true)),
 	Handler::LoadInfo("LoadingRing", new Handler::LoadingScreenArgs("titlescreenuserinterface.jpg")),
 	Handler::LoadInfo("MainMenu", new Handler::AptArgs(""))
 };
