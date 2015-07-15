@@ -13,6 +13,6 @@ const std::string GameData::languageINI = "language.ini";
 
 std::map<std::string, std::shared_ptr<GameData::DialogEvent>> GameData::gd_dialogs;
 std::map<std::string, std::shared_ptr<GameData::Video>> GameData::gd_videos;
-std::map<std::string, std::shared_ptr<BigStream>> GameData::gd_fonts;
+std::map<std::string, std::shared_ptr<sf::InputStream>> GameData::gd_fonts;
 std::shared_ptr<GameData::Language> GameData::gd_language;
-std::shared_ptr<BigStream> GameData::gd_defaultFont = nullptr;
+std::shared_ptr<sf::InputStream> GameData::gd_defaultFont = nullptr;

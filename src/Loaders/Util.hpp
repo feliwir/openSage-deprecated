@@ -5,6 +5,8 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <memory>
+#include <SFML/System.hpp>
 
 namespace Util
 {
@@ -46,4 +48,12 @@ namespace Util
 		fin.read((char*)buf, size);
 		return buf;
 	}
+
+    inline std::string ReadAll(std::shared_ptr<sf::InputStream> stream)
+    {
+        char* buf = new char[stream->getSize()+1];
+        stream->read(buf, stream->getSize());
+        buf[stream->getSize()] = 0;
+        return buf;
+    }
 }

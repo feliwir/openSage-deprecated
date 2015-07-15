@@ -7,9 +7,8 @@
 #include <memory>
 #include <vector>
 #include <SFML/Graphics/Font.hpp>
-#include "../Loaders/BigStream.hpp"
-
-using namespace Loaders;
+#include <SFML/System.hpp>
+#include "../FileSystem.hpp"
 
 class GameData
 {
@@ -63,11 +62,7 @@ public:
 		for (auto& name : lang->fonts)
 		{
 			std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-			std::shared_ptr<BigStream> stream = std::make_shared<BigStream>();
-			if (!stream->open(name))
-				continue;
-			
-		
+            auto stream = FileSystem::Open(name);
 
 			sf::Font font;
 			if (!font.loadFromStream(*stream))
@@ -80,7 +75,7 @@ public:
 		}
 	}
 
-	static inline std::shared_ptr<BigStream> GetFont(const std::string& name)
+	static inline std::shared_ptr<sf::InputStream> GetFont(const std::string& name)
 	{
 		auto font = gd_fonts[name];
 		if (font == nullptr)
@@ -105,7 +100,7 @@ private:
 	static std::map<std::string, std::shared_ptr<DialogEvent>> gd_dialogs;
 	static std::map<std::string, std::shared_ptr<Video>> gd_videos;
 	static std::shared_ptr<Language> gd_language;
-	static std::map<std::string, std::shared_ptr<BigStream>> gd_fonts;
+	static std::map<std::string, std::shared_ptr<sf::InputStream>> gd_fonts;
 
-	static std::shared_ptr<BigStream> gd_defaultFont;
+    static std::shared_ptr<sf::InputStream> gd_defaultFont;
 };

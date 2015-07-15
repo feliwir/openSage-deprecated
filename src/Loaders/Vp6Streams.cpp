@@ -29,7 +29,6 @@ Vp6Stream::~Vp6Stream()
 
 bool Vp6Stream::open(const std::string& name)
 {
-
 	AVCodecContext* codexCtxOrig = NULL;
 	char errStr[256];
 	unsigned int err = avformat_open_input(&m_fmtCtx, name.c_str(), NULL, NULL);
@@ -38,8 +37,7 @@ bool Vp6Stream::open(const std::string& name)
 		av_strerror(err, errStr, 256);
 		std::cout << "Error: " << errStr << std::endl;
 		return false;
-	}
-		
+	}	
 
 	// Retrieve stream information
 	if (avformat_find_stream_info(m_fmtCtx, NULL)<0)

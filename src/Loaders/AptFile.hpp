@@ -48,7 +48,7 @@ namespace Loaders
 			uint32_t itemcount;
 			std::vector<ConstItem> items;
 		};
-	private:
+
 #pragma region AptFormat
 		struct Tri 
 		{
@@ -102,10 +102,10 @@ namespace Loaders
 		struct GeometryEntry 
 		{
 			std::vector<Tri> tris;
-			std::vector <Line> lines;
-			std::vector <SolidStyle> solidstyles;
-			std::vector <LineStyle> linestyles;
-			std::vector <TextureStyle> texturestyles;
+			std::vector<Line> lines;
+			std::vector<SolidStyle> solidstyles;
+			std::vector<LineStyle> linestyles;
+			std::vector<TextureStyle> texturestyles;
 			std::vector<Commands>	order;
 		};
 
@@ -294,7 +294,7 @@ namespace Loaders
 
         void Update(std::map<uint32_t, Object>& displaylist, std::vector<uint32_t>& deleteList);
 	public:
-	    bool loadFromStream(sf::InputStream& aptStream, sf::InputStream& constStream, const std::string& name);
+        bool loadFromStream(std::shared_ptr<sf::InputStream> aptStream, std::shared_ptr<sf::InputStream> constStream, const std::string& name);
 
 		inline void Update()
 		{

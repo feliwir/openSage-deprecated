@@ -3,6 +3,7 @@
 #include "GameData.hpp"
 #include "INI.hpp"
 #include "../Loaders/BigStream.hpp"
+#include "../Loaders/Util.hpp"
 #include "../FileSystem.hpp"
 #include <memory>
 
@@ -48,16 +49,15 @@ Handler::AptInfo::AptInfo(std::shared_ptr<Loaders::AptFile> aptfile)
 
 void Handler::Initialize()
 {
-	BigStream iniStream;
+    auto iniStream = FileSystem::Open(GameData::videoINI);
 	std::string iniStr;
-	iniStream.open(GameData::videoINI);
-	iniStr = iniStream.readAll();
+    iniStr = Util::ReadAll(iniStream);
 	INI::Parse(iniStr);
-	iniStream.open(GameData::speechINI);
-	iniStr = iniStream.readAll();
+    iniStream = FileSystem::Open(GameData::speechINI);
+    iniStr = Util::ReadAll(iniStream);
 	INI::Parse(iniStr);
-	iniStream.open(GameData::languageINI);
-	iniStr = iniStream.readAll();
+    iniStream = FileSystem::Open(GameData::languageINI);
+    iniStr = Util::ReadAll(iniStream);
 	INI::Parse(iniStr);
 	GetState();	
 }
@@ -115,13 +115,9 @@ void Handler::GetState()
 			auto args = dynamic_cast<AptArgs*>(l.args);
 
 			std::shared_ptr<Loaders::AptFile> apt = std::make_shared<Loaders::AptFile>();
-			BigStream aptStream;
-			if (!aptStream.open(l.name + ".apt"))
-				continue;
+            auto aptStream = FileSystem::Open(l.name + ".apt");
 
-			BigStream constStream;
-			if (!constStream.open(l.name + ".const"))
-				continue;
+            auto constStream = FileSystem::Open(l.name + ".const");
 
 			apt->loadFromStream(aptStream, constStream,l.name);
 			done = true;
@@ -145,12 +141,10 @@ void Handler::GetState()
 			}
 
 			std::string path = GameData::compiledtexDIR + args->GetImageName().substr(0, 2) + "/" + args->GetImageName();
-			BigStream imgFile;
-			if (!imgFile.open(path))
-				continue;
+            auto imgStream = FileSystem::Open(path);
 
 			std::shared_ptr<sf::Texture> tex = std::make_shared<sf::Texture>();
-			tex->loadFromStream(imgFile);
+            tex->loadFromStream(*imgStream);
 
 			done = true;
 

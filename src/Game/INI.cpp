@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace Loaders;
 using namespace Game;
 
 const std::map<std::string, INI::Section> INI::sections = {

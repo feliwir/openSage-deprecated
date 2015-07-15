@@ -30,6 +30,26 @@ void FileSystem::Initialize()
 	std::cout << "FileSystem: Added " << files.size() << " BigArchives" << std::endl;
 }
 
+std::shared_ptr<sf::InputStream> FileSystem::Open(const std::string& name)
+{
+    std::shared_ptr<sf::InputStream> stream;
+
+    if (BigStream::HasEntry(name))
+    {
+        auto big = std::make_shared<BigStream>();
+        if(big->open(name))
+            stream = big;
+    }    
+    else
+    {
+        auto file = std::make_shared<sf::FileInputStream>();
+        if(file->open(name))
+            stream = file;
+    }
+        
+    return stream;
+}
+
 std::vector<std::string> FileSystem::getFiles(const string &directory,const string& mask)
 {
 	std::vector<std::string> files;

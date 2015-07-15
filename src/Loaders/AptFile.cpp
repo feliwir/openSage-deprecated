@@ -3,7 +3,7 @@
 #include <string>
 #include "AptFile.hpp"
 #include "Util.hpp"
-#include "BigStream.hpp"
+#include "../FileSystem.hpp"
 #include "../Script/ActionScript.hpp"
 #include "../Game/GameData.hpp"
 
@@ -14,11 +14,11 @@ using namespace Util;
 
 std::map<std::string, std::shared_ptr<AptFile>> AptFile::aptfiles;
 
-bool AptFile::loadFromStream(sf::InputStream& aptStream, sf::InputStream& constStream,const std::string& name)
+bool AptFile::loadFromStream(std::shared_ptr<sf::InputStream> aptStream, std::shared_ptr<sf::InputStream> constStream, const std::string& name)
 {
 	m_name = name;
-	uint8_t* constBuf = new uint8_t[constStream.getSize()];
-	constStream.read(constBuf, constStream.getSize());
+	uint8_t* constBuf = new uint8_t[constStream->getSize()];
+	constStream->read(constBuf, constStream->getSize());
 
 	//now start parsing by setting our iter to the start of the aptbuffer
 	uint8_t* iter = constBuf;
@@ -105,8 +105,8 @@ bool AptFile::loadFromStream(sf::InputStream& aptStream, sf::InputStream& constS
 
     std::cout << "Parsed " << name << ".dat" << std::endl;
 
-	m_aptBuf = new uint8_t[aptStream.getSize()];
-	aptStream.read(m_aptBuf, aptStream.getSize());
+	m_aptBuf = new uint8_t[aptStream->getSize()];
+	aptStream->read(m_aptBuf, aptStream->getSize());
 	
 	iter = m_aptBuf + m_data.aptdataoffset;
 	m_characters[0] = ParseCharacter(iter, m_aptBuf);
@@ -371,13 +371,9 @@ std::shared_ptr<AptFile::Character> AptFile::ParseCharacter(uint8_t*& buf,uint8_
                 if (aptfiles[im.movie] == nullptr)
                 {
                     aptfiles[im.movie] = std::make_shared<AptFile>();
-                    BigStream aptStream;
-                    if (!aptStream.open(im.movie + ".apt"))
-                        continue;
+                    auto aptStream = FileSystem::Open(im.movie + ".apt");
 
-                    BigStream constStream;
-                    if (!constStream.open(im.movie + ".const"))
-                        continue;
+                    auto constStream = FileSystem::Open(im.movie + ".const");
 
                     aptfiles[im.movie]->loadFromStream(aptStream, constStream, im.movie);
                 }
@@ -634,9 +630,9 @@ void AptFile::Render(sf::RenderWindow& win, std::map<uint32_t, Object>& displayl
 			std::cout << "Rendering edittext: " << di.ch << std::endl;
 			//TODO render here
 			auto font = std::static_pointer_cast<Font>(m_characters[et->font]);
-			auto stream = *GameData::GetFont(font->name);
+			auto stream = GameData::GetFont(font->name);
 			sf::Font data;
-			data.loadFromStream(stream);
+			data.loadFromStream(*stream);
 			sf::Text text(et->text, data,et->fontheight);
 			auto pos = glm::vec2(offset.x + et->bounds.x, +offset.y + et->bounds.y);
 			text.setPosition(pos.x, pos.y);
