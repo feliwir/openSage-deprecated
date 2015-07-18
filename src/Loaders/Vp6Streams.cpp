@@ -77,9 +77,9 @@ bool Vp6Stream::open(const std::string& name)
 	m_frameRGB = av_frame_alloc();
 
 	// Determine required buffer size and allocate buffer
-	int numBytes = avpicture_get_size(PIX_FMT_RGBA, m_codecCtx->width, m_codecCtx->height);
+	int numBytes = avpicture_get_size(PIX_FMT_RGB24, m_codecCtx->width, m_codecCtx->height);
 	m_buf = (uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
-	avpicture_fill((AVPicture *)m_frameRGB, m_buf, PIX_FMT_RGBA,m_codecCtx->width, m_codecCtx->height);
+	avpicture_fill((AVPicture *)m_frameRGB, m_buf, PIX_FMT_RGB24,m_codecCtx->width, m_codecCtx->height);
 
 	// initialize SWS context for software scaling
 	m_swsCtx = sws_getContext(m_codecCtx->width,
@@ -87,18 +87,13 @@ bool Vp6Stream::open(const std::string& name)
 		m_codecCtx->pix_fmt,
 		m_codecCtx->width,
 		m_codecCtx->height,
-		PIX_FMT_RGBA,
+        PIX_FMT_RGB24,
 		SWS_BILINEAR,
 		NULL,
 		NULL,
 		NULL
 		);
 
-	//Fill the texture with a black image
-	sf::Image img;
-	img.create(m_codecCtx->width, m_codecCtx->height);
-	m_tex.loadFromImage(img);
-	m_tex.setSmooth(true);
 	m_status = Stopped;
 	return true;
 }
@@ -110,8 +105,7 @@ void Vp6Stream::play()
 
 	m_status = Playing;
 	m_running = true;
-	m_thread = std::thread(&Vp6Stream::update, this);
-	
+	m_thread = std::thread(&Vp6Stream::update, this);	
 }
 
 void Vp6Stream::update()
@@ -146,10 +140,10 @@ void Vp6Stream::update()
 					m_frame->linesize, 0, m_codecCtx->height,
 					m_frameRGB->data, m_frameRGB->linesize);
 
-				m_tex.update((sf::Uint8*)m_frameRGB->data[0]);
 				last += frameLength;
 				std::this_thread::sleep_until(last);
 				++m_curFrame;
+                m_updated = true;
 			}
 		}
 		// Free the packet that was allocated by av_read_frame

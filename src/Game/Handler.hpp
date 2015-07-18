@@ -4,8 +4,15 @@
 #include <vector> 
 #include <chrono>
 #include "../Loaders/Mp3Stream.hpp"
-#include "../Loaders/Vp6Stream.hpp"
-#include "../Loaders/AptFile.hpp"
+#include "../Graphics/Video.hpp"
+//#include "../Loaders/AptFile.hpp"
+#include <SFML/Window.hpp>
+
+
+namespace Loaders
+{
+    class AptFile{};
+}
 
 namespace Game
 {
@@ -49,7 +56,7 @@ namespace Game
 		{
 			inline bool IsDone()
 			{
-				if (mp3->getStatus() == Loaders::Mp3Stream::Stopped && vp6->getStatus() == Loaders::Vp6Stream::Stopped)
+				if (mp3->getStatus() == Loaders::Mp3Stream::Stopped && vid->getStatus() == Loaders::Vp6Stream::Stopped)
 				{
 					return true;
 				}
@@ -57,14 +64,14 @@ namespace Game
 				return false;
 			};
 
-			CinematicInfo(std::shared_ptr<Loaders::Vp6Stream> video, std::shared_ptr<Loaders::Mp3Stream> audio, bool skippable = false);
+			CinematicInfo(std::shared_ptr<Graphics::Video> video, std::shared_ptr<Loaders::Mp3Stream> audio, bool skippable = false);
 
-			inline std::shared_ptr<Loaders::Vp6Stream> GetVP6()
+            inline std::shared_ptr<Graphics::Video> GetVid()
 			{
-				return vp6;
+				return vid;
 			}
 
-			inline std::shared_ptr<Loaders::Mp3Stream> GetMP3()
+			inline std::shared_ptr<Loaders::Mp3Stream> GetMp3()
 			{
 				return mp3;
 			}
@@ -73,13 +80,13 @@ namespace Game
 			{
 				if (canSkip)
 				{
-					vp6->stop();
+					vid->stop();
 					mp3->stop();
 				}
 
 			}
 		private:
-			std::shared_ptr<Loaders::Vp6Stream> vp6;
+			std::shared_ptr<Graphics::Video> vid;
 			std::shared_ptr<Loaders::Mp3Stream> mp3;
 			bool canSkip;
 		};
@@ -94,24 +101,20 @@ namespace Game
 					return false;
 			};
 
-			LoadingScreenInfo(std::shared_ptr<Loaders::Vp6Stream> video, std::shared_ptr<sf::Texture> tex);
+			LoadingScreenInfo(std::shared_ptr<Loaders::Vp6Stream> video, std::shared_ptr<Graphics::Texture> tex);
 
 			inline std::shared_ptr<Loaders::Vp6Stream> GetVP6()
 			{
 				return vp6;
 			}
 
-			inline std::shared_ptr<sf::Texture> GetTex()
-			{
-				return tex;
-			}
 		private:
 			std::shared_ptr<Loaders::Vp6Stream> vp6;
-			std::shared_ptr<sf::Texture> tex;
+			std::shared_ptr<Graphics::Texture> tex;
 			std::chrono::high_resolution_clock::time_point start;
 		};
 
-		struct AptInfo : public StateInfo
+		/*struct AptInfo : public StateInfo
 		{
 			inline bool IsDone()
 			{
@@ -126,7 +129,7 @@ namespace Game
 			}
 		private:
 			std::shared_ptr<Loaders::AptFile> apt;
-		};
+		};*/
 
 		struct CinematicArgs : public StateArgs
 		{
@@ -199,7 +202,7 @@ namespace Game
 		static void GetState();
 	public:
 		static void Initialize();
-		static void Update(sf::RenderWindow& window);
+        static void Update(sf::Window& window);
 		static void KeyDown(const sf::Event::KeyEvent& keyEv);
 		static void KeyUp(const sf::Event::KeyEvent& keyEv);
 	private:

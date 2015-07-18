@@ -3,6 +3,7 @@
 #include "FileSystem.hpp"
 #include "AudioSystem.hpp"
 #include "VideoSystem.hpp"
+#include "GraphicsSystem.hpp"
 #include "Game/Handler.hpp"
 #include <SFML/Audio.hpp>
 
@@ -12,14 +13,9 @@
 Engine::Engine()
 {
 	m_window.create(sf::VideoMode(800, 600), "openSAGE",sf::Style::None);
-	sf::Image splash;
-	const std::string splashFile = "GermanSplash.jpg";
-	bool loaded = splash.loadFromFile(splashFile);
-	sf::Texture splashTex;
-	splashTex.loadFromImage(splash);
-	m_window.draw(sf::Sprite(splashTex));
-	m_window.display();
+
 	AudioSystem::Initialize();
+    GraphicsSystem::Initialize();
 	VideoSystem::Initialize();
 	FileSystem::Initialize();
 	Game::Handler::Initialize();
@@ -29,14 +25,26 @@ Engine::~Engine()
 {
 	AudioSystem::Release();
 	VideoSystem::Release();
+    GraphicsSystem::Release();
 }
 
 void Engine::Run()
 {
-	m_window.create(sf::VideoMode(Config::Width, Config::Height), Config::Title, Config::Fullscreen ? sf::Style::Fullscreen : sf::Style::None);
+    sf::ContextSettings settings;
+    settings.antialiasingLevel = 2;
+    settings.attributeFlags = sf::ContextSettings::Core;
+    settings.majorVersion = 4;
+    settings.minorVersion = 2;
+    settings.depthBits = 8;
+    settings.stencilBits = 24;
+
+	m_window.create(sf::VideoMode(Config::Width, Config::Height), Config::Title, 
+        Config::Fullscreen ? sf::Style::Fullscreen : sf::Style::None,settings);
+
 
 	while (m_window.isOpen())
 	{	
+        GraphicsSystem::Clear();
         sf::Event event;
         while (m_window.pollEvent(event))
         {
@@ -54,8 +62,9 @@ void Engine::Run()
 			}
       
         }
-
 		Game::Handler::Update(m_window);
+        GraphicsSystem::Update();
+        GraphicsSystem::Render();
 		m_window.display();
 	}
 }

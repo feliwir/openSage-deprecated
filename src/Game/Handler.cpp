@@ -5,7 +5,9 @@
 #include "../Loaders/BigStream.hpp"
 #include "../Loaders/Util.hpp"
 #include "../FileSystem.hpp"
+#include "../GraphicsSystem.hpp"
 #include <memory>
+
 
 using namespace Loaders;
 using namespace Game;
@@ -13,27 +15,27 @@ using namespace Game;
 //TODO: change this for different gametitles
 //currently set for bfme2
 std::vector<Handler::LoadInfo> Handler::loadOrder = {
-	//Handler::LoadInfo("EALogoMovie", new Handler::CinematicArgs(false)),
-	//Handler::LoadInfo("NewLineLogo", new Handler::CinematicArgs(false)),
-	//Handler::LoadInfo("TolkienLogo", new Handler::CinematicArgs(false)),
-	//Handler::LoadInfo("Overall_Game_Intro", new Handler::CinematicArgs(true)),
+	Handler::LoadInfo("EALogoMovie", new Handler::CinematicArgs(false)),
+	Handler::LoadInfo("NewLineLogo", new Handler::CinematicArgs(false)),
+	Handler::LoadInfo("TolkienLogo", new Handler::CinematicArgs(false)),
+	Handler::LoadInfo("Overall_Game_Intro", new Handler::CinematicArgs(true)),
 	Handler::LoadInfo("LoadingRing", new Handler::LoadingScreenArgs("titlescreenuserinterface.jpg")),
-	Handler::LoadInfo("MainMenu", new Handler::AptArgs(""))
+	//Handler::LoadInfo("MainMenu", new Handler::AptArgs(""))
 };
 
 std::shared_ptr<Handler::StateInfo> Handler::cState;
 int Handler::state_index = 0;
 bool Handler::escPressed = false;
 
-Handler::CinematicInfo::CinematicInfo(std::shared_ptr<Loaders::Vp6Stream> video, std::shared_ptr<Loaders::Mp3Stream> audio,bool skipable)
+Handler::CinematicInfo::CinematicInfo(std::shared_ptr<Graphics::Video> video, std::shared_ptr<Loaders::Mp3Stream> audio,bool skipable)
 {
-	vp6 = video;
+	vid = video;
 	mp3 = audio;
 	canSkip = skipable;
 	state_type = CINEMATIC;
 }
 
-Handler::LoadingScreenInfo::LoadingScreenInfo(std::shared_ptr<Loaders::Vp6Stream> video, std::shared_ptr<sf::Texture> texture)
+Handler::LoadingScreenInfo::LoadingScreenInfo(std::shared_ptr<Loaders::Vp6Stream> video, std::shared_ptr<Graphics::Texture> texture)
 {
 	vp6 = video;
 	tex = texture;
@@ -41,11 +43,11 @@ Handler::LoadingScreenInfo::LoadingScreenInfo(std::shared_ptr<Loaders::Vp6Stream
 	state_type = LOADING_SCREEN;
 }
 
-Handler::AptInfo::AptInfo(std::shared_ptr<Loaders::AptFile> aptfile)
-{
-	apt = aptfile;
-	state_type = APT_FILE;
-}
+//Handler::AptInfo::AptInfo(std::shared_ptr<Loaders::AptFile> aptfile)
+//{
+//	apt = aptfile;
+//	state_type = APT_FILE;
+//}
 
 void Handler::Initialize()
 {
@@ -87,11 +89,11 @@ void Handler::GetState()
 			if (video == nullptr)
 				continue;
 
-			std::shared_ptr<Loaders::Vp6Stream> vp6 = std::make_shared<Loaders::Vp6Stream>();
-			if (!vp6->open(GameData::videoDIR + video->filename + ".vp6"))
+            std::shared_ptr<Graphics::Video> vid = std::make_shared<Graphics::Video>();
+			if (!vid->Create(GameData::videoDIR + video->filename + ".vp6",glm::vec2(0,0),glm::vec2(1024,768)))
 				continue;
 
-			vp6->play();
+			vid->play();
 
 			std::shared_ptr<Loaders::Mp3Stream> mp3 = std::make_shared<Loaders::Mp3Stream>();
 			auto dialog = GameData::GetDialogEvent(video->filename);
@@ -105,8 +107,8 @@ void Handler::GetState()
 				}
 			}
 			done = true;
-
-			cState = std::make_shared<CinematicInfo>(vp6, mp3, args->IsSkipable());
+            GraphicsSystem::AddVideo(vid);
+			cState = std::make_shared<CinematicInfo>(vid, mp3, args->IsSkipable());
 			
 		}
 			break;
@@ -119,10 +121,10 @@ void Handler::GetState()
 
             auto constStream = FileSystem::Open(l.name + ".const");
 
-			apt->loadFromStream(aptStream, constStream,l.name);
+			//apt->loadFromStream(aptStream, constStream,l.name);
 			done = true;
 
-			cState = std::make_shared<AptInfo>(apt);
+			/*cState = std::make_shared<AptInfo>(apt);*/
 		}
 			break;
 		case LOADING_SCREEN:
@@ -143,7 +145,7 @@ void Handler::GetState()
 			std::string path = GameData::compiledtexDIR + args->GetImageName().substr(0, 2) + "/" + args->GetImageName();
             auto imgStream = FileSystem::Open(path);
 
-			std::shared_ptr<sf::Texture> tex = std::make_shared<sf::Texture>();
+            std::shared_ptr<Graphics::Texture> tex = std::make_shared<Graphics::Texture>();
             tex->loadFromStream(*imgStream);
 
 			done = true;
@@ -160,7 +162,7 @@ void Handler::GetState()
 	}
 }
 
-void Handler::Update(sf::RenderWindow& m_window)
+void Handler::Update(sf::Window& window)
 {
 	if (!cState->IsDone())
 	{
@@ -168,14 +170,8 @@ void Handler::Update(sf::RenderWindow& m_window)
 		{
 		case CINEMATIC:
 		{
-			m_window.clear();
-			auto cinematic = std::static_pointer_cast<CinematicInfo>(cState);			
-			auto sprite = sf::Sprite(cinematic->GetVP6()->GetTexture());
-			sprite.setScale((float)m_window.getSize().x / sprite.getTextureRect().width,
-							(float)m_window.getSize().y / sprite.getTextureRect().height);
-			
-			m_window.draw(sprite);
-			
+			auto cinematic = std::static_pointer_cast<CinematicInfo>(cState);
+	
 			if (escPressed)
 			{
 				escPressed = false;
@@ -184,23 +180,17 @@ void Handler::Update(sf::RenderWindow& m_window)
 		}
 			break;
 		case LOADING_SCREEN:
-		{
-			m_window.clear();
+		{                          
 			auto loading_screen = std::static_pointer_cast<LoadingScreenInfo>(cState);
-			auto sprite = sf::Sprite(*loading_screen->GetTex());
-			sprite.setScale((float)m_window.getSize().x / sprite.getTextureRect().width,
-				(float)m_window.getSize().y / sprite.getTextureRect().height*1.3333f);
 
-			m_window.draw(sprite);
 		}
 			break;
 		case APT_FILE:
 		{
-			auto apt_file = std::static_pointer_cast<AptInfo>(cState);
+			/*auto apt_file = std::static_pointer_cast<AptInfo>(cState);
 			auto apt = apt_file->GetApt();
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
-			apt->Update();
-			apt->Render(m_window);		
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));*/
+			//apt->Update();
 		}
 			break;
 		}

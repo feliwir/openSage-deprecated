@@ -6,7 +6,6 @@
 #include <string>
 #include <sstream>
 #include <SFML/System.hpp>
-#include <SFML/Graphics.hpp>
 #include <glm/glm.hpp>
 #include "BigStream.hpp"
 #include "../Script/ActionScript.hpp"
@@ -287,10 +286,9 @@ namespace Loaders
 		std::shared_ptr<FrameItem> ParseFrameItem(uint8_t*& buffer, uint8_t* base);
 
         void UpdateFrame(Frame& frame, Object& parent);
-		void UpdateTransform(PlaceObject& po, sf::Transform& t);
 
-        void RenderGeometry(sf::RenderWindow& win, Object& di, glm::f32vec2 offset, glm::f32mat2 rotscale);
-        void Render(sf::RenderWindow& win, std::map<uint32_t, Object>& displaylist, glm::f32vec2 offset, glm::f32mat2 rotscale);
+        void RenderGeometry(sf::Window& win, Object& di, glm::f32vec2 offset, glm::f32mat2 rotscale);
+        void Render(sf::Window& win, std::map<uint32_t, Object>& displaylist, glm::f32vec2 offset, glm::f32mat2 rotscale);
 
         void Update(std::map<uint32_t, Object>& displaylist, std::vector<uint32_t>& deleteList);
 	public:
@@ -299,12 +297,6 @@ namespace Loaders
 		inline void Update()
 		{
 			Update(m_displaylist, m_deleteList);
-		}
-
-		inline void Render(sf::RenderWindow& win)
-		{
-			win.clear(m_bgColor);
-			Render(win, m_displaylist,glm::f32vec2(),glm::f32mat2());
 		}
 
         inline std::shared_ptr<Character> GetCharacter(const uint32_t id)
@@ -355,14 +347,12 @@ namespace Loaders
 		ConstData m_data;
 		Movie m_movie;
 		std::map<uint32_t, uint32_t> m_dat;
-		std::map<uint32_t, std::shared_ptr<sf::Texture>> m_textures;
 		std::map<uint32_t, std::shared_ptr<Character>> m_characters;
 		std::map<uint32_t, Object> m_displaylist;
 		std::vector<uint32_t> m_deleteList;
         Script::AS::Context m_asCtx;
 		uint32_t m_frame;
 		uint8_t* m_aptBuf;
-		sf::Color m_bgColor;
         static std::map<std::string, std::shared_ptr<AptFile>> aptfiles;
 	};
 }

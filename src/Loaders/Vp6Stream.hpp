@@ -4,7 +4,8 @@
 #include <stdint.h>
 #include <atomic>
 #include <thread>
-#include <SFML/Graphics.hpp>
+#include <glm/glm.hpp>
+#include "../Graphics/Texture.hpp"
 
 extern "C"
 {
@@ -39,16 +40,30 @@ namespace Loaders
 				m_thread.join();
 		}
 
-		inline sf::Texture& GetTexture()
+		inline const uint8_t* getColorData()
 		{
-			return m_tex;
+            return m_frameRGB->data[0];
 		}
-
 
 		inline Status getStatus()
 		{
 			return m_status;
 		}
+
+        inline glm::vec2 getSize()
+        {
+            return glm::vec2(m_codecCtx->width, m_codecCtx->height);
+        }
+
+        inline bool isUpdated()
+        {
+            if (m_updated)
+            {
+                m_updated = false;
+                return true;
+            }
+            return false;
+        }
 	private:
 		AVFormatContext* m_fmtCtx;
 		AVCodecContext* m_codecCtx;
@@ -60,8 +75,8 @@ namespace Loaders
 		int8_t m_streamIndex;
 		uint32_t m_curFrame;
 		std::thread m_thread;
-		sf::Texture m_tex;
 		std::atomic_bool m_running;
+        std::atomic_bool m_updated;
 		Status m_status;
 	};
 }

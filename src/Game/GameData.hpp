@@ -64,14 +64,14 @@ public:
 			std::transform(name.begin(), name.end(), name.begin(), ::tolower);
             auto stream = FileSystem::Open(name);
 
-			sf::Font font;
+			/*sf::Font font;
 			if (!font.loadFromStream(*stream))
-				continue;
+				continue;*/
 
 			if (gd_defaultFont == nullptr)
 				gd_defaultFont = stream;
 
-			gd_fonts[font.getInfo().family] = stream;
+			gd_fonts["bla"] = stream;
 		}
 	}
 

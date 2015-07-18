@@ -1,6 +1,6 @@
 // Stephan Vedder 2015
 #pragma once
-#include <SFML/Graphics.hpp>
+#include <SFML/Window.hpp>
 #include "Loaders/Vp6Stream.hpp"
 #include "Loaders/Mp3Stream.hpp"
 
@@ -13,5 +13,5 @@ public:
 	void Run();
 
 private:
-	sf::RenderWindow m_window;
+	sf::Window m_window;
 };

@@ -47,7 +47,7 @@ if (OPENSAGE_BUILD_STATIC)
     set (SFML_STATIC_LIBRARIES TRUE)
 endif()
 
-find_package (SFML 2.3 COMPONENTS graphics window system audio REQUIRED)
+find_package (SFML 2.3 COMPONENTS window system audio REQUIRED)
 message(STATUS "SFML libraries: ${SFML_LIBRARIES}")
 message(STATUS "Additional dependencies: ${SFML_DEPENDENCIES}")
 
@@ -72,6 +72,14 @@ message(STATUS "FFMPEG libraries: ${FFMPEG_LIBRARIES}")
 
 find_package (GLM REQUIRED)
 message(STATUS "GLM library: ${GLM_INCLUDE_DIR}")
+
+#################################################################################################################
+# ================================================== GLI SETUP ================================================ #
+#################################################################################################################
+
+find_package (GLI REQUIRED)
+message(STATUS "GLI library: ${GLI_INCLUDE_DIR}")
+
 
 #################################################################################################################
 # ================================================= BOOST SETUP =============================================== #
