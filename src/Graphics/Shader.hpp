@@ -19,6 +19,8 @@ namespace Graphics
             FRAGMENT_SHADER = 2
         };
 
+
+        void LoadFromFile(const Type type, const std::string& filename);
         void LoadFromMemory(const Type type, const std::string& content);
         void Link();
 

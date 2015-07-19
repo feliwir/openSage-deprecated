@@ -17,8 +17,8 @@ void GraphicsSystem::Initialize()
     m_ortho = glm::ortho(0.0f, 1024.0f, 768.0f, 0.0f, 0.1f, 100.0f);
     //video shader
     m_shaders.push_back(std::make_shared<Shader>());
-    m_shaders.back()->LoadFromMemory(Shader::VERTEX_SHADER, Video::VertexShader);
-    m_shaders.back()->LoadFromMemory(Shader::FRAGMENT_SHADER, Video::FragmentShader);
+    m_shaders.back()->LoadFromFile(Shader::VERTEX_SHADER, "shader/video.vert");
+    m_shaders.back()->LoadFromFile(Shader::FRAGMENT_SHADER, "shader/video.frag");
     m_shaders.back()->Link();
 }
 

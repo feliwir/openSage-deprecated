@@ -3,24 +3,6 @@
 
 using namespace Graphics;
 
-const std::string Video::VertexShader =
-"#version 330 core\n"
-"in vec2 pos;\n"
-"uniform vec2 translate;\n"
-"uniform mat4 ortho;\n"
-"void main(void) {\n"
-"vec2 tran_pos = vec2(pos + vec2(translate));\n"
-"gl_Position = ortho * vec4(tran_pos,1.0f, 1.0f);\n"
-"}\n";
-
-const std::string Video::FragmentShader =
-"#version 330 core\n"
-"out vec4 color\n;"
-"void main(void) {\n"
-"color = vec4(0,0,0,1);\n"
-""
-"}\n";
-
 Video::Video()
 {
 

@@ -3,7 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <iostream>
-
+#include "../FileSystem.hpp"
 
 using namespace Graphics;
 
@@ -25,6 +25,20 @@ Shader::~Shader()
 
     if (m_program)
         glDeleteProgram(m_program);
+}
+
+void Shader::LoadFromFile(const Type type, const std::string & name)
+{
+    auto stream = FileSystem::Open(name);
+    if (!stream)
+    {
+        std::cout << "Failed to load shader: " << name << std::endl;
+    }
+    char* content = new char[stream->getSize()+1];
+    stream->read(content, stream->getSize());
+    content[stream->getSize()] = 0;
+    LoadFromMemory(type, content);
+    delete[] content;
 }
 
 

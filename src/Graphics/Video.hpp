@@ -37,9 +37,6 @@ namespace Graphics
         {
             m_videoStream.play();
         }
-
-        static const std::string VertexShader;
-        static const std::string FragmentShader;
     private:
         Texture m_colorTex;
         Texture m_alphaTex;
