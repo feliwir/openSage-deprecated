@@ -8,12 +8,14 @@
 
 using namespace Game;
 
+//all tokens that show a new section
 const std::map<std::string, INI::Section> INI::sections = {
 	{"DialogEvent",INI::DIALOG_EVENT},
 	{"Video",INI::VIDEO},
 	{"Language", INI::LANGUAGE}
 };
 
+//all tokens that are a parameter of a section
 const std::map<std::string, INI::Parameters> INI::parameters = {
 	{ "END", INI::END },
 	{ "End", INI::END },
@@ -35,13 +37,17 @@ bool INI::Parse(const std::string& content)
 	
 	while (std::getline(iss, line))
 	{
+        //end the line after any ; or //
 		line = line.substr(0, line.find(';'));
 		line = line.substr(0, line.find("//"));
+
+        //remove tabs and windows newline 
 		line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
 		line.erase(std::remove(line.begin(), line.end(), '\t'), line.end());
 		if (line.size() == 0)
 			continue;
 
+        //check the current parser state
 		switch (state)
 		{
 		case NEW_SECTION:

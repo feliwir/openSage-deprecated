@@ -13,7 +13,7 @@ using namespace Loaders;
 using namespace Game;
 
 //TODO: change this for different gametitles
-//currently set for bfme2
+//loading order of the game is hardcoded
 std::vector<Handler::LoadInfo> Handler::loadOrder = {
 	Handler::LoadInfo("EALogoMovie", new Handler::CinematicArgs(false)),
 	Handler::LoadInfo("NewLineLogo", new Handler::CinematicArgs(false)),
@@ -43,14 +43,9 @@ Handler::LoadingScreenInfo::LoadingScreenInfo(std::shared_ptr<Loaders::Vp6Stream
 	state_type = LOADING_SCREEN;
 }
 
-//Handler::AptInfo::AptInfo(std::shared_ptr<Loaders::AptFile> aptfile)
-//{
-//	apt = aptfile;
-//	state_type = APT_FILE;
-//}
-
 void Handler::Initialize()
 {
+    //parse a couple ini's on startup
     auto iniStream = FileSystem::Open(GameData::videoINI);
 	std::string iniStr;
     iniStr = Util::ReadAll(iniStream);
@@ -64,6 +59,7 @@ void Handler::Initialize()
 	GetState();	
 }
 
+//go into the next gamestate
 void Handler::GetState()
 {
 	bool done = false;
@@ -73,6 +69,8 @@ void Handler::GetState()
 		std::cout << "Finished game" << std::endl;
 	}
 	
+
+    //check which type of gamestate does follow now
 	for (auto& l : loadOrder)
 	{
 		if (l.loaded)
@@ -162,6 +160,9 @@ void Handler::GetState()
 	}
 }
 
+
+//check if the current gamestate is done
+//when it's the case go to the next gamestate
 void Handler::Update(sf::Window& window)
 {
 	if (!cState->IsDone())

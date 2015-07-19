@@ -33,8 +33,8 @@ void Engine::Run()
     sf::ContextSettings settings;
     settings.antialiasingLevel = 2;
     settings.attributeFlags = sf::ContextSettings::Core;
-    settings.majorVersion = 4;
-    settings.minorVersion = 2;
+    settings.majorVersion = 3;
+    settings.minorVersion = 3;
     settings.depthBits = 8;
     settings.stencilBits = 24;
 
@@ -46,6 +46,8 @@ void Engine::Run()
 	{	
         GraphicsSystem::Clear();
         sf::Event event;
+
+        //check if any events happened and pass them to the handler
         while (m_window.pollEvent(event))
         {
 			switch (event.type)

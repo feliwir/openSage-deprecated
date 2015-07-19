@@ -13,6 +13,7 @@ void GraphicsSystem::Initialize()
 {
     flextInit();
 
+    //our 2D mvp matrix
     m_ortho = glm::ortho(0.0f, 1024.0f, 768.0f, 0.0f, 0.1f, 100.0f);
     //video shader
     m_shaders.push_back(std::make_shared<Shader>());
@@ -28,6 +29,7 @@ void GraphicsSystem::Release()
 
 void GraphicsSystem::Clear()
 {
+    //clear the screen
     glClear(GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 }
 

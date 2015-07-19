@@ -89,8 +89,10 @@ bool Texture::loadDDS(sf::InputStream& stream)
     glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA,reinterpret_cast<const GLint*>(format.Swizzle));
     glTexImage2D(GL_TEXTURE_2D, 0, format.Internal, m_tex.dimensions().x, m_tex.dimensions().y, 0, format.External, GL_UNSIGNED_BYTE, NULL);
 
+    //uncompress texture in the gpu
     if (gli::is_compressed(m_tex.format()))
     {
+        //fill all mipmap levels
         for (std::size_t Level = 0; Level < m_tex.levels(); ++Level)
         {
             glCompressedTexSubImage2D(GL_TEXTURE_2D, static_cast<GLint>(Level),
@@ -104,6 +106,7 @@ bool Texture::loadDDS(sf::InputStream& stream)
     }
     else
     {
+        //fill all mipmap levels
         for (std::size_t Level = 0; Level < m_tex.levels(); ++Level)
         {
             glTexSubImage2D(GL_TEXTURE_2D, static_cast<GLint>(Level),
@@ -132,6 +135,7 @@ void Texture::create(gli::texture2D::dim_type dim, gli::format gliFormat)
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //create image on the gpu with given size & dataformat
     glTexImage2D(GL_TEXTURE_2D, 0, format.Internal, m_tex.dimensions().x, m_tex.dimensions().y, 0, format.External, GL_UNSIGNED_BYTE, nullptr);
 }
 
@@ -141,5 +145,6 @@ void Texture::update(const uint8_t* data)
     gli::gl::format const format = GL.translate(m_tex.format());
 
     glBindTexture(GL_TEXTURE_2D, m_id);
+    //change content of the gpu
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_tex.dimensions().x, m_tex.dimensions().y, format.External, GL_UNSIGNED_BYTE, data);
 }

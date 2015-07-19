@@ -31,8 +31,8 @@ bool Mp3Stream::open(const std::string& name)
 	m_handle = mpg123_new(nullptr, &err);
 	long rate;
 	int channels, enc;
-
-	if (!m_stream.open(name))
+    m_stream = FileSystem::Open(name);
+	if (!m_stream)
 		return false;
 
 	if (!m_handle)
@@ -47,8 +47,9 @@ bool Mp3Stream::open(const std::string& name)
 		return false;
 	}
 
-	len = m_stream.read(m_buf, INBUFF);
+	len = m_stream->read(m_buf, INBUFF);
 
+    //read until we found out the format of this mp3 file
 	while (ret==MPG123_NEED_MORE)
 	{
 		ret = mpg123_decode(m_handle, m_buf, len, m_out, OUTBUFF, &size);
@@ -60,7 +61,7 @@ bool Mp3Stream::open(const std::string& name)
 			break;
 		}
 
-		len = m_stream.read(m_buf, INBUFF);
+		len = m_stream->read(m_buf, INBUFF);
 	}
 
 	AudioSystem::RegisterStream(this);
@@ -68,6 +69,7 @@ bool Mp3Stream::open(const std::string& name)
 	return true;
 }
 
+//the audio file did run out of samples, so fill it again
 bool Mp3Stream::onGetData(Chunk& data)
 {
 	
@@ -80,6 +82,7 @@ bool Mp3Stream::onGetData(Chunk& data)
 		//i want data, what to do?
 		while (ret == MPG123_NEED_MORE)
 		{
+            //wait for the decoder thread to finish it's work
 			while (!m_hasData)
 			{
 				std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -87,7 +90,7 @@ bool Mp3Stream::onGetData(Chunk& data)
 
 			ret = mpg123_read(m_handle, m_out, OUTBUFF, &size);
 			off_t offset = mpg123_tell_stream(m_handle);
-			if (offset == m_stream.getSize())
+			if (offset == m_stream->getSize())
 			{
 				AudioSystem::UnregisterStream(this);
 				return false;
@@ -101,6 +104,7 @@ bool Mp3Stream::onGetData(Chunk& data)
 
 		data.samples = (short*)m_out;
 		data.sampleCount = size / sizeof(short);
+        //tell the decoder thread to make new data ready
 		m_hasData = false;
 		return true;
 	}
@@ -108,18 +112,20 @@ bool Mp3Stream::onGetData(Chunk& data)
 		return false;
 }
 
+//the audio wants to be seeked
 void Mp3Stream::onSeek(sf::Time timeOffset)
 {
 	if (m_handle)
 		mpg123_seek(m_handle, timeOffset.asSeconds(), 0);
 }
 
+//decode new samples from our decoder thread
 void Mp3Stream::update()
 {
 	sf::Int64 len;
 	if (!m_hasData)
 	{
-		len = m_stream.read(m_buf, INBUFF);
+		len = m_stream->read(m_buf, INBUFF);
 		if (mpg123_feed(m_handle, m_buf, len) == MPG123_DONE)
 			m_isDone = true;
 	

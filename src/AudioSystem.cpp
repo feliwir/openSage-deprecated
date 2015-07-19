@@ -40,6 +40,7 @@ void AudioSystem::Update()
 {
 	while (m_running)
 	{
+        //update each audio stream
 		for(auto& stream : m_streams)
 		{
 			stream->update();
@@ -49,7 +50,7 @@ void AudioSystem::Update()
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		if (m_streams.size() > 0)
 		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 	}
 }
