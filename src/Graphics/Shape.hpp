@@ -7,7 +7,7 @@ namespace Graphics
     class Shape : public sf::Drawable
     {
     public:
-        void Create(Loaders::AptFile::GeometryEntry& geometry);
+        void create(Loaders::AptFile::GeometryEntry& geometry);
 
     protected:
         void draw(sf::RenderTarget& target, sf::RenderStates& states);

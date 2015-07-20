@@ -10,7 +10,7 @@ public:
 	Engine();
 	~Engine();
 
-	void Run();
+	void run();
 
 private:
 	sf::Window m_window;

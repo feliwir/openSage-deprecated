@@ -27,9 +27,9 @@ Shader::~Shader()
         glDeleteProgram(m_program);
 }
 
-void Shader::LoadFromFile(const Type type, const std::string & name)
+void Shader::loadFromFile(const Type type, const std::string & name)
 {
-    auto stream = FileSystem::Open(name);
+    auto stream = FileSystem::open(name);
     if (!stream)
     {
         std::cout << "Failed to load shader: " << name << std::endl;
@@ -37,12 +37,12 @@ void Shader::LoadFromFile(const Type type, const std::string & name)
     char* content = new char[stream->getSize()+1];
     stream->read(content, stream->getSize());
     content[stream->getSize()] = 0;
-    LoadFromMemory(type, content);
+    loadFromMemory(type, content);
     delete[] content;
 }
 
 
-void Shader::LoadFromMemory(const Type type, const std::string & content)
+void Shader::loadFromMemory(const Type type, const std::string & content)
 {
 
     switch (type)
@@ -79,7 +79,7 @@ void Shader::LoadFromMemory(const Type type, const std::string & content)
     glAttachShader(m_program, m_shaders[type]);
 }
 
-void Shader::Link()
+void Shader::link()
 {
     GLint status = 0;
     glLinkProgram(m_program);
@@ -95,36 +95,36 @@ void Shader::Link()
     }
 }
 
-void Shader::Use() const
+void Shader::use() const
 {
     glUseProgram(m_program);
 }
 
-void Shader::UnUse() const
+void Shader::unUse() const
 {
     glUseProgram(0);
 }
 
-void Graphics::Shader::AddUniform(const std::string & name)
+void Graphics::Shader::addUniform(const std::string & name)
 {
     GLint attr = glGetUniformLocation(m_program, name.c_str());
     m_uniformLocationList[name] = attr;
 }
 
-void Graphics::Shader::AddAttribute(const std::string & name)
+void Graphics::Shader::addAttribute(const std::string & name)
 {
     GLint index = m_attributeList.size();
     glBindAttribLocation(m_program, index, name.c_str());
     m_attributeList[name] = index;
 }
 
-GLuint Graphics::Shader::Uniform(const std::string& name)
+GLuint Graphics::Shader::uniform(const std::string& name)
 {
 
     return m_uniformLocationList[name];
 }
 
-GLuint Graphics::Shader::Attribute(const std::string& name)
+GLuint Graphics::Shader::attribute(const std::string& name)
 {
     return m_attributeList[name];
 }

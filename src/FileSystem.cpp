@@ -19,22 +19,22 @@ using namespace boost::filesystem;
 #endif
 
 
-void FileSystem::Initialize()
+void FileSystem::initialize()
 {
 	auto files = getFiles(".",".big");
 	std::reverse(files.begin(), files.end());
 	for (const auto& file : files)
-		BigStream::AddFile(file);
+		BigStream::addFile(file);
 
 	std::cout << "FileSystem: Current Workingdir: " << system_complete(path(".")).string() << std::endl;
 	std::cout << "FileSystem: Added " << files.size() << " BigArchives" << std::endl;
 }
 
-std::shared_ptr<sf::InputStream> FileSystem::Open(const std::string& name)
+std::shared_ptr<sf::InputStream> FileSystem::open(const std::string& name)
 {
     std::shared_ptr<sf::InputStream> stream;
 
-    if (BigStream::HasEntry(name))
+    if (BigStream::hasEntry(name))
     {
         auto big = std::make_shared<BigStream>();
         if(big->open(name))

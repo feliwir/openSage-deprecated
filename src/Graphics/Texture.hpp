@@ -12,6 +12,9 @@ namespace Graphics
     class Texture
     {
     public:
+		Texture();
+		~Texture();
+
         bool loadFromStream(sf::InputStream& stream);
         bool loadTGA(sf::InputStream& stream);
         bool loadDDS(sf::InputStream& stream);
@@ -19,9 +22,6 @@ namespace Graphics
 
         void bind();
         void update(const uint8_t* data);
-
-        Texture();
-        ~Texture();
     private:
         gli::texture2D m_tex;
         GLuint m_id;

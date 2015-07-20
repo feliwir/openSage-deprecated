@@ -31,7 +31,7 @@ bool Mp3Stream::open(const std::string& name)
 	m_handle = mpg123_new(nullptr, &err);
 	long rate;
 	int channels, enc;
-    m_stream = FileSystem::Open(name);
+    m_stream = FileSystem::open(name);
 	if (!m_stream)
 		return false;
 
@@ -64,7 +64,7 @@ bool Mp3Stream::open(const std::string& name)
 		len = m_stream->read(m_buf, INBUFF);
 	}
 
-	AudioSystem::RegisterStream(this);
+	AudioSystem::registerStream(this);
 	initialize(channels, rate);
 	return true;
 }
@@ -92,7 +92,7 @@ bool Mp3Stream::onGetData(Chunk& data)
 			off_t offset = mpg123_tell_stream(m_handle);
 			if (offset == m_stream->getSize())
 			{
-				AudioSystem::UnregisterStream(this);
+				AudioSystem::unregisterStream(this);
 				return false;
 			}
 				
@@ -131,5 +131,4 @@ void Mp3Stream::update()
 	
 		m_hasData = true;
 	}
-
 }

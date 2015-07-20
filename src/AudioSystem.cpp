@@ -7,7 +7,7 @@ std::vector<Loaders::Mp3Stream*> AudioSystem::m_streams;
 std::thread AudioSystem::m_thread;
 bool AudioSystem::m_running = false;
 
-void AudioSystem::Initialize()
+void AudioSystem::initialize()
 {
 	int  err = MPG123_OK;
 	if ((err = mpg123_init()) != MPG123_OK)
@@ -16,10 +16,10 @@ void AudioSystem::Initialize()
 	}
 
 	m_running = true;
-	m_thread = std::thread(Update);
+	m_thread = std::thread(update);
 }
 
-void AudioSystem::Release()
+void AudioSystem::release()
 {
 	m_running = false;
 	//wait until this thread terminates
@@ -27,16 +27,17 @@ void AudioSystem::Release()
 	mpg123_exit();
 }
 
-void AudioSystem::RegisterStream(Loaders::Mp3Stream* stream)
+void AudioSystem::registerStream(Loaders::Mp3Stream* stream)
 {
 	m_streams.push_back(stream);
 }
-void AudioSystem::UnregisterStream(Loaders::Mp3Stream* stream)
+
+void AudioSystem::unregisterStream(Loaders::Mp3Stream* stream)
 {
 	m_streams.erase(std::remove(m_streams.begin(), m_streams.end(), stream), m_streams.end());
 }
 
-void AudioSystem::Update()
+void AudioSystem::update()
 {
 	while (m_running)
 	{

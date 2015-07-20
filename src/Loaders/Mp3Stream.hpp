@@ -17,6 +17,7 @@ namespace Loaders
 
 		bool open(const std::string& name);
 		void update();
+
 	protected:
 		bool onGetData(Chunk& data);
 		void onSeek(sf::Time timeOffset);

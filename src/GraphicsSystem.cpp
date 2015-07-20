@@ -9,7 +9,7 @@ std::vector<std::shared_ptr<Graphics::IRenderable>> GraphicsSystem::m_videos;
 std::vector<std::shared_ptr<Graphics::Shader>> GraphicsSystem::m_shaders;
 glm::mat4 GraphicsSystem::m_ortho;
 
-void GraphicsSystem::Initialize()
+void GraphicsSystem::initialize()
 {
     flextInit();
 
@@ -17,43 +17,43 @@ void GraphicsSystem::Initialize()
     m_ortho = glm::ortho(0.0f, 1024.0f, 768.0f, 0.0f, 0.1f, 100.0f);
     //video shader
     m_shaders.push_back(std::make_shared<Shader>());
-    m_shaders.back()->LoadFromFile(Shader::VERTEX_SHADER, "shader/video.vert");
-    m_shaders.back()->LoadFromFile(Shader::FRAGMENT_SHADER, "shader/video.frag");
-    m_shaders.back()->Link();
+    m_shaders.back()->loadFromFile(Shader::VERTEX_SHADER, "shader/video.vert");
+    m_shaders.back()->loadFromFile(Shader::FRAGMENT_SHADER, "shader/video.frag");
+    m_shaders.back()->link();
 }
 
-void GraphicsSystem::Release()
+void GraphicsSystem::release()
 {
 
 }
 
-void GraphicsSystem::Clear()
+void GraphicsSystem::clear()
 {
     //clear the screen
     glClear(GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 }
 
-void GraphicsSystem::Render()
+void GraphicsSystem::render()
 {
-    //m_shaders[VIDEO_SHADER]->Use();
+    m_shaders[VIDEO_SHADER]->use();
     
-    //for (auto& renderable : m_videos)
-    //{
-    //    renderable->Render(*m_shaders[VIDEO_SHADER]);
-    //}
+    for (auto& renderable : m_videos)
+    {
+        renderable->render(*m_shaders[VIDEO_SHADER]);
+    }
 
-    //m_shaders[VIDEO_SHADER]->UnUse();
+    m_shaders[VIDEO_SHADER]->unUse();
 }
 
-void GraphicsSystem::Update()
+void GraphicsSystem::update()
 {
     for (auto& renderable : m_videos)
     {
-        renderable->Update();
+        renderable->update();
     }
 }
 
-void GraphicsSystem::AddVideo(std::shared_ptr<IRenderable> renderable)
+void GraphicsSystem::addVideo(std::shared_ptr<IRenderable> renderable)
 {
     m_videos.push_back(renderable);
 }

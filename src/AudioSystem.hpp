@@ -7,17 +7,18 @@
 class AudioSystem
 {
 public:
-	static void Initialize();
-	static void Release();
+	static void initialize();
+	static void release();
 
-	static void RegisterStream(Loaders::Mp3Stream *stream);
-	static void UnregisterStream(Loaders::Mp3Stream* stream);
-	static inline std::thread& GetThread()
+	static void registerStream(Loaders::Mp3Stream *stream);
+	static void unregisterStream(Loaders::Mp3Stream* stream);
+	static inline std::thread& getThread()
 	{
 		return m_thread;
 	}
+
 private:
-	static void Update();
+	static void update();
 
 	static bool	m_running;
 	static std::vector<Loaders::Mp3Stream*> m_streams;

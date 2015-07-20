@@ -1,4 +1,4 @@
-// Stephan Vedder 2015
+ // Stephan Vedder 2015
 #pragma once
 #include <stdint.h>
 #include <vector>
@@ -29,7 +29,7 @@ namespace Loaders
 		//Const File
 		enum ConstItemType 
 		{
-			TYPE_UNDEF = 0,
+			TYPE_UNDEF  = 0,
 			TYPE_STRING = 1,
 			TYPE_NUMBER = 4,
 		};
@@ -93,8 +93,8 @@ namespace Loaders
 
 		enum Style
 		{
-			STYLE_SOLID = 0,
-			STYLE_LINE = 1,
+			STYLE_SOLID   = 0,
+			STYLE_LINE    = 1,
 			STYLE_TEXTURE = 2,
 		};
 
@@ -110,15 +110,15 @@ namespace Loaders
 
 		//Character
 		enum CharacterType {
-			SHAPE = 1,
-			EDITTEXT = 2,
-			FONT = 3,
-			BUTTON = 4,
-			SPRITE = 5,
-			IMAGE = 7,
-			MORPH = 8,
-			MOVIE = 9,
-			TEXT = 10
+			SHAPE     = 1,
+			EDITTEXT  = 2,
+			FONT      = 3,
+			BUTTON    = 4,
+			SPRITE    = 5,
+			IMAGE     = 7,
+			MORPH     = 8,
+			MOVIE     = 9,
+			TEXT      = 10
 		};
 
 		struct Character 
@@ -129,12 +129,12 @@ namespace Loaders
 
 		enum FrameItemType
 		{
-			ACTION = 1,
-			FRAMELABEL = 2,
-			PLACEOBJECT = 3,
-			REMOVEOBJECT = 4,
+			ACTION          = 1,
+			FRAMELABEL      = 2,
+			PLACEOBJECT     = 3,
+			REMOVEOBJECT    = 4,
 			BACKGROUNDCOLOR = 5,
-			INITACTION = 8
+			INITACTION      = 8
 		};
 
 		struct FrameItem
@@ -281,30 +281,31 @@ namespace Loaders
 #pragma endregion
 
 	private:
-		GeometryEntry ParseGeometry(const std::string& name);
-		std::shared_ptr<Character> ParseCharacter(uint8_t*& buffer, uint8_t* base);
-		std::shared_ptr<FrameItem> ParseFrameItem(uint8_t*& buffer, uint8_t* base);
+		GeometryEntry parseGeometry(const std::string& name);
+		std::shared_ptr<Character> parseCharacter(uint8_t*& buffer, uint8_t* base);
+		std::shared_ptr<FrameItem> parseFrameItem(uint8_t*& buffer, uint8_t* base);
 
-        void UpdateFrame(Frame& frame, Object& parent);
+        void updateFrame(Frame& frame, Object& parent);
 
-        void RenderGeometry(sf::Window& win, Object& di, glm::f32vec2 offset, glm::f32mat2 rotscale);
-        void Render(sf::Window& win, std::map<uint32_t, Object>& displaylist, glm::f32vec2 offset, glm::f32mat2 rotscale);
+        void renderGeometry(sf::Window& win, Object& di, glm::f32vec2 offset, glm::f32mat2 rotscale);
+        void render(sf::Window& win, std::map<uint32_t, Object>& displaylist, glm::f32vec2 offset, glm::f32mat2 rotscale);
 
-        void Update(std::map<uint32_t, Object>& displaylist, std::vector<uint32_t>& deleteList);
+        void update(std::map<uint32_t, Object>& displaylist, std::vector<uint32_t>& deleteList);
+
 	public:
         bool loadFromStream(std::shared_ptr<sf::InputStream> aptStream, std::shared_ptr<sf::InputStream> constStream, const std::string& name);
 
-		inline void Update()
+		inline void update()
 		{
-			Update(m_displaylist, m_deleteList);
+			update(m_displaylist, m_deleteList);
 		}
 
-        inline std::shared_ptr<Character> GetCharacter(const uint32_t id)
+        inline std::shared_ptr<Character> getCharacter(const uint32_t id)
         {
             return m_characters[id];
         }
 
-        inline Object& GetObject(const std::string& name)
+        inline Object& getObject(const std::string& name)
         {
             for (auto& o : m_displaylist)
             {
@@ -315,22 +316,22 @@ namespace Loaders
             return Object();
         }
 
-        inline ConstData& GetConstData()
+        inline ConstData& getConstData()
         {
             return m_data;
         }
 
-        inline const uint8_t* GetMemory()
+        inline const uint8_t* getMemory()
         {
             return m_aptBuf;
         }
 
-        inline Script::AS::Context& GetContext()
+        inline Script::AS::Context& getContext()
         {
             return m_asCtx;
         }
 
-        inline std::shared_ptr<Character> GetExport(const std::string& name)
+        inline std::shared_ptr<Character> getExport(const std::string& name)
         {
             auto movie = std::static_pointer_cast<Movie>(m_characters[0]);
             for (auto& e : movie->exports)
@@ -342,6 +343,7 @@ namespace Loaders
 
 		~AptFile();
 		AptFile();
+
 	private:
 		std::string m_name;
 		ConstData m_data;

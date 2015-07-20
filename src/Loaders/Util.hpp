@@ -11,7 +11,7 @@
 namespace Util
 {
 	template<class T>
-	inline T Read(std::ifstream& fin)
+	inline T read(std::ifstream& fin)
 	{
 		T result;
 		fin.read((char*)&result, sizeof(T));
@@ -19,7 +19,7 @@ namespace Util
 	}
 
 	template<class T>
-	inline T Read(uint8_t*& buf)
+	inline T read(uint8_t*& buf)
 	{
 		T result;
 		result = *(T*)buf;
@@ -27,7 +27,7 @@ namespace Util
 		return result;
 	}
 
-	inline std::string ReadString(std::ifstream& fin)
+	inline std::string readString(std::ifstream& fin)
 	{
 		std::string result;
 		char c;
@@ -37,19 +37,19 @@ namespace Util
 		return result;
 	}
 
-	inline void Reverse(uint32_t& v)
+	inline void reverse(uint32_t& v)
 	{
 		v = (v << 24) | (v << 8 & 0xff0000) | (v >> 8 & 0xff00) | (v >> 24);
 	}
 
-	inline uint8_t* ReadBuffer(std::ifstream& fin, uint32_t size)
+	inline uint8_t* readBuffer(std::ifstream& fin, uint32_t size)
 	{
 		uint8_t* buf = new uint8_t[size];
 		fin.read((char*)buf, size);
 		return buf;
 	}
 
-    inline std::string ReadAll(std::shared_ptr<sf::InputStream> stream)
+    inline std::string readAll(std::shared_ptr<sf::InputStream> stream)
     {
         char* buf = new char[stream->getSize()+1];
         stream->read(buf, stream->getSize());

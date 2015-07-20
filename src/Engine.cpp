@@ -14,21 +14,21 @@ Engine::Engine()
 {
 	m_window.create(sf::VideoMode(800, 600), "openSAGE",sf::Style::None);
 
-	AudioSystem::Initialize();
-    GraphicsSystem::Initialize();
-	VideoSystem::Initialize();
-	FileSystem::Initialize();
-	Game::Handler::Initialize();
+	AudioSystem::initialize();
+    GraphicsSystem::initialize();
+	VideoSystem::initialize();
+	FileSystem::initialize();
+	Game::Handler::initialize();
 }
 
 Engine::~Engine()
 {
-	AudioSystem::Release();
-	VideoSystem::Release();
-    GraphicsSystem::Release();
+	AudioSystem::release();
+	VideoSystem::release();
+    GraphicsSystem::release();
 }
 
-void Engine::Run()
+void Engine::run()
 {
     sf::ContextSettings settings;
     settings.antialiasingLevel = 2;
@@ -38,13 +38,13 @@ void Engine::Run()
     settings.depthBits = 8;
     settings.stencilBits = 24;
 
-	m_window.create(sf::VideoMode(Config::Width, Config::Height), Config::Title, 
-        Config::Fullscreen ? sf::Style::Fullscreen : sf::Style::None,settings);
+	m_window.create(sf::VideoMode(Config::width, Config::height), Config::title, 
+        Config::fullscreen ? sf::Style::Fullscreen : sf::Style::None,settings);
 
 
 	while (m_window.isOpen())
 	{	
-        GraphicsSystem::Clear();
+        GraphicsSystem::clear();
         sf::Event event;
 
         //check if any events happened and pass them to the handler
@@ -56,17 +56,17 @@ void Engine::Run()
 				m_window.close();
 				break;
 			case sf::Event::KeyPressed:
-				Game::Handler::KeyDown(event.key);
+				Game::Handler::keyDown(event.key);
 				break;
 			case sf::Event::KeyReleased:
-				Game::Handler::KeyUp(event.key);
+				Game::Handler::keyUp(event.key);
 				break;
 			}
       
         }
-		Game::Handler::Update(m_window);
-        GraphicsSystem::Update();
-        GraphicsSystem::Render();
+		Game::Handler::update(m_window);
+        GraphicsSystem::update();
+        GraphicsSystem::render();
 		m_window.display();
 	}
 }
