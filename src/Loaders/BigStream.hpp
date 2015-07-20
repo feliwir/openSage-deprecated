@@ -47,11 +47,12 @@ namespace Loaders
 		virtual sf::Int64 tell();
 		virtual sf::Int64 getSize();
 
-		static void AddFile(const std::string& name);
-        static inline bool HasEntry(const std::string& name)
+		static void addFile(const std::string& name);
+        static inline bool hasEntry(const std::string& name)
         {
             return (entries.find(name) != entries.end());
         }
+
 	private:
 		std::shared_ptr<BigEntry> entry;
 		uint32_t pos;

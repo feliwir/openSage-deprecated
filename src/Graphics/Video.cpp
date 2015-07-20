@@ -5,10 +5,9 @@ using namespace Graphics;
 
 Video::Video()
 {
-
 }
 
-bool Video::Create(const std::string& name, glm::vec2 pos, glm::vec2 size)
+bool Video::create(const std::string& name, glm::vec2 pos, glm::vec2 size)
 {
     if (!m_videoStream.open(name))
         return false;
@@ -17,16 +16,14 @@ bool Video::Create(const std::string& name, glm::vec2 pos, glm::vec2 size)
     return true;
 }
 
-void Video::Update()
+void Video::update()
 {
-    
     if (m_videoStream.isUpdated())
     {
         m_colorTex.update(m_videoStream.getColorData());
     }
 }
 
-void Video::Render(Shader& shader)
+void Video::render(Shader& shader)
 {
-
 }

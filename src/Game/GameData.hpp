@@ -41,39 +41,41 @@ public:
 	{
 		std::vector<std::string> fonts;
 	};
+
 public:
-	static inline void AddAmbientStream(const std::string& name, const std::shared_ptr<AmbientStream> stream)
+	static inline void addAmbientStream(const std::string& name, const std::shared_ptr<AmbientStream> stream)
 	{
 		gd_ambientStreams[name] = stream;
 	}
-	static inline void AddDialogEvent(const std::string& name, const std::shared_ptr<DialogEvent> speech)
+
+	static inline void addDialogEvent(const std::string& name, const std::shared_ptr<DialogEvent> speech)
 	{
 		gd_dialogs[name] = speech;
 	}
 
-	static inline void AddVideo(const std::string& name, const std::shared_ptr<Video> video)
+	static inline void addVideo(const std::string& name, const std::shared_ptr<Video> video)
 	{
 		gd_videos[name] = video;
 	}
 
-	static inline std::shared_ptr<DialogEvent>& GetDialogEvent(const std::string& name)
+	static inline std::shared_ptr<DialogEvent>& getDialogEvent(const std::string& name)
 	{
 		return gd_dialogs[name];
 	}
 
-	static inline std::shared_ptr<Video>& GetVideo(const std::string& name)
+	static inline std::shared_ptr<Video>& getVideo(const std::string& name)
 	{
 		return gd_videos[name];
 	}
 
-	static inline void SetLanguage(const std::shared_ptr<Language> lang)
+	static inline void setLanguage(const std::shared_ptr<Language> lang)
 	{
 		gd_language = lang;
 
 		for (auto& name : lang->fonts)
 		{
 			std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-            auto stream = FileSystem::Open(name);
+            auto stream = FileSystem::open(name);
 
 			/*sf::Font font;
 			if (!font.loadFromStream(*stream))
@@ -86,7 +88,7 @@ public:
 		}
 	}
 
-	static inline std::shared_ptr<sf::InputStream> GetFont(const std::string& name)
+	static inline std::shared_ptr<sf::InputStream> getFont(const std::string& name)
 	{
 		auto font = gd_fonts[name];
 		if (font == nullptr)

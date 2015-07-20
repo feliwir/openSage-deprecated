@@ -4,12 +4,12 @@
 #include <iostream>
 
 
-void VideoSystem::Initialize()
+void VideoSystem::initialize()
 {
 	av_log_set_level(AV_LOG_QUIET);
 	av_register_all();
 }
 
-void VideoSystem::Release()
+void VideoSystem::release()
 {
 }

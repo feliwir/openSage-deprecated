@@ -8,7 +8,7 @@
 class VideoSystem
 {
 public:
-	static void Initialize();
-	static void Release();
+	static void initialize();
+	static void release();
 
 };

@@ -15,14 +15,15 @@ private:
     };
 
 public:
-    static void Clear();
-    static void Initialize();
-    static void Release();
+    static void clear();
+    static void initialize();
+    static void release();
 
-    static void Update();
-    static void Render();
+    static void update();
+    static void render();
 
-    static void AddVideo(std::shared_ptr<Graphics::IRenderable>);
+    static void addVideo(std::shared_ptr<Graphics::IRenderable>);
+
 private:
     static std::vector<std::shared_ptr<Graphics::IRenderable>> m_videos;
     static std::vector<std::shared_ptr<Graphics::Shader>> m_shaders;

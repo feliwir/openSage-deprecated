@@ -17,7 +17,6 @@ BigStream::BigStream() : pos(0)
 
 BigStream::~BigStream()
 {
-
 }
 
 bool BigStream::open(const std::string& filename)
@@ -66,7 +65,7 @@ sf::Int64 BigStream::getSize()
 	return entry->size;
 }
 
-void BigStream::AddFile(const string& name)
+void BigStream::addFile(const string& name)
 {
 	auto big = make_shared<BigFile>();
 	big->fin.open(name,ios::binary);
@@ -74,17 +73,17 @@ void BigStream::AddFile(const string& name)
 	if (big->fin.fail())
 		return;
 
-	big->header = Util::Read<BigHeader>(big->fin);
-	Reverse(big->header.num_files);
+	big->header = Util::read<BigHeader>(big->fin);
+	reverse(big->header.num_files);
 	
 	for (int i = 0; i < big->header.num_files; ++i)
 	{
 		auto entry = make_shared<BigEntry>();
-		entry->offset = Util::Read<uint32_t>(big->fin);
-		Reverse(entry->offset);
-		entry->size = Util::Read<uint32_t>(big->fin);
-		Reverse(entry->size);
-		entry->name = Util::ReadString(big->fin);
+		entry->offset = Util::read<uint32_t>(big->fin);
+		reverse(entry->offset);
+		entry->size = Util::read<uint32_t>(big->fin);
+		reverse(entry->size);
+		entry->name = Util::readString(big->fin);
 		std::replace(entry->name.begin(),entry->name.end(),'\\', '/');
 		entry->container = big;
 		big->entries.push_back(entry);

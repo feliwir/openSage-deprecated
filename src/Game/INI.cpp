@@ -29,7 +29,7 @@ const std::map<std::string, INI::Parameters> INI::parameters = {
 	{ "LocalFontFile", INI::LOCALFONTFILE }
 };
 
-bool INI::Parse(const std::string& content)
+bool INI::parse(const std::string& content)
 {
 	std::istringstream iss(content);
 	std::string line;
@@ -116,7 +116,7 @@ bool INI::Parse(const std::string& content)
 				case END:
 				{
 					state = NEW_SECTION;
-					GameData::AddAmbientStream(sectionName, std::static_pointer_cast<GameData::AmbientStream>(obj));
+					GameData::addAmbientStream(sectionName, std::static_pointer_cast<GameData::AmbientStream>(obj));
 				}
 				break;
 				case FILENAME:
@@ -156,7 +156,7 @@ bool INI::Parse(const std::string& content)
 					case END:
 					{
 						state = NEW_SECTION;
-						GameData::AddDialogEvent(sectionName, std::static_pointer_cast<GameData::DialogEvent>(obj));
+						GameData::addDialogEvent(sectionName, std::static_pointer_cast<GameData::DialogEvent>(obj));
 					}
 					break;
 					case FILENAME:
@@ -188,7 +188,7 @@ bool INI::Parse(const std::string& content)
 					case END:
 					{
 						state = NEW_SECTION;
-						GameData::AddVideo(sectionName, std::static_pointer_cast<GameData::Video>(obj));
+						GameData::addVideo(sectionName, std::static_pointer_cast<GameData::Video>(obj));
 					}
 					break;
 					case FILENAME:
@@ -221,7 +221,7 @@ bool INI::Parse(const std::string& content)
 				case END:
 				{
 					state = NEW_SECTION;
-					GameData::SetLanguage(std::static_pointer_cast<GameData::Language>(obj));
+					GameData::setLanguage(std::static_pointer_cast<GameData::Language>(obj));
 				}
 				break;
 				case LOCALFONTFILE:

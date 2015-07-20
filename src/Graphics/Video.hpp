@@ -19,9 +19,9 @@ namespace Graphics
 
         Video();
 
-        bool Create(const std::string& name, glm::vec2 pos, glm::vec2 size);
-        void Update();
-        void Render(Shader& shader);
+        bool create(const std::string& name, glm::vec2 pos, glm::vec2 size);
+        void update();
+        void render(Shader& shader);
 
         inline Status getStatus()
         {

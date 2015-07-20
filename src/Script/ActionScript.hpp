@@ -164,6 +164,7 @@ namespace Script
 			uint32_t size;
 			uint8_t* body;
 		};
+
     public:
 		enum ValueType
 		{
@@ -187,9 +188,10 @@ namespace Script
         {
             std::map<std::string, Value> vars;
         };
+
 	public:
-		static uint32_t GetBytecodeSize(uint8_t* bytecode);
-		static bool ExecuteBytecode(uint8_t* bytecode, Loaders::AptFile* apt);
+		static uint32_t getBytecodeSize(uint8_t* bytecode);
+		static bool executeBytecode(uint8_t* bytecode, Loaders::AptFile* apt);
 	};
 
 }

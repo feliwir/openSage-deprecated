@@ -20,18 +20,18 @@ namespace Graphics
         };
 
 
-        void LoadFromFile(const Type type, const std::string& filename);
-        void LoadFromMemory(const Type type, const std::string& content);
-        void Link();
+        void loadFromFile(const Type type, const std::string& filename);
+        void loadFromMemory(const Type type, const std::string& content);
+        void link();
 
-        void Use() const;
-        void UnUse() const;
+        void use() const;
+        void unUse() const;
 
-        void AddUniform(const std::string& uniform);
-        void AddAttribute(const std::string& attribute);
+        void addUniform(const std::string& uniform);
+        void addAttribute(const std::string& attribute);
 
-        GLuint Uniform(const std::string& uniform);
-        GLuint Attribute(const std::string& attribute);
+        GLuint uniform(const std::string& uniform);
+        GLuint attribute(const std::string& attribute);
     private:     
         GLuint m_program;
         std::array<GLuint, 3> m_shaders;

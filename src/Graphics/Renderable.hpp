@@ -7,7 +7,7 @@ namespace Graphics
     class IRenderable
     {
     public:
-        virtual void Render(Shader& shader) = 0;
-        virtual void Update() = 0;
+        virtual void render(Shader& shader) = 0;
+        virtual void update() = 0;
     };
 }

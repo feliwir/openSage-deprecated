@@ -5,16 +5,13 @@ using namespace Graphics;
 
 Texture::Texture() : m_id(0)
 {
-
 }
-
 
 Texture::~Texture()
 {
     if (m_id)
         glDeleteTextures(1, &m_id);
 }
-
 
 bool Texture::loadFromStream(sf::InputStream& stream)
 {

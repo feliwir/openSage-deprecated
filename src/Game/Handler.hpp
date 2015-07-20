@@ -28,7 +28,7 @@ namespace Game
 
 		struct StateArgs
 		{
-			inline GameState& GetType()
+			inline GameState& getType()
 			{
 				return m_state;
 			}
@@ -37,24 +37,26 @@ namespace Game
 			{
 
 			}
+
 		protected:
 			GameState m_state;
 		};
 
 		struct StateInfo
 		{
-			virtual bool IsDone() = 0;
-			inline GameState GetType()
+			virtual bool isDone() = 0;
+			inline GameState getType()
 			{
 				return state_type;
 			}
+
 		protected:
 			GameState state_type;
 		};
 
 		struct CinematicInfo : public StateInfo
 		{
-			inline bool IsDone()
+			inline bool isDone()
 			{
 				if (mp3->getStatus() == Loaders::Mp3Stream::Stopped && vid->getStatus() == Loaders::Vp6Stream::Stopped)
 				{
@@ -66,17 +68,17 @@ namespace Game
 
 			CinematicInfo(std::shared_ptr<Graphics::Video> video, std::shared_ptr<Loaders::Mp3Stream> audio, bool skippable = false);
 
-            inline std::shared_ptr<Graphics::Video> GetVid()
+            inline std::shared_ptr<Graphics::Video> getVid()
 			{
 				return vid;
 			}
 
-			inline std::shared_ptr<Loaders::Mp3Stream> GetMp3()
+			inline std::shared_ptr<Loaders::Mp3Stream> getMp3()
 			{
 				return mp3;
 			}
 
-			inline void Skip()
+			inline void skip()
 			{
 				if (canSkip)
 				{
@@ -85,6 +87,7 @@ namespace Game
 				}
 
 			}
+
 		private:
 			std::shared_ptr<Graphics::Video> vid;
 			std::shared_ptr<Loaders::Mp3Stream> mp3;
@@ -93,7 +96,7 @@ namespace Game
 
 		struct LoadingScreenInfo : public StateInfo
 		{
-			inline bool IsDone()
+			inline bool isDone()
 			{
 				if ((std::chrono::high_resolution_clock::now() - start) > std::chrono::seconds(1))
 					return true;
@@ -103,7 +106,7 @@ namespace Game
 
 			LoadingScreenInfo(std::shared_ptr<Loaders::Vp6Stream> video, std::shared_ptr<Graphics::Texture> tex);
 
-			inline std::shared_ptr<Loaders::Vp6Stream> GetVP6()
+			inline std::shared_ptr<Loaders::Vp6Stream> getVP6()
 			{
 				return vp6;
 			}
@@ -116,14 +119,14 @@ namespace Game
 
 		/*struct AptInfo : public StateInfo
 		{
-			inline bool IsDone()
+			inline bool isDone()
 			{
 				return false;
 			};
 
 			AptInfo(std::shared_ptr<Loaders::AptFile> apt);
 
-			inline std::shared_ptr<Loaders::AptFile> GetApt()
+			inline std::shared_ptr<Loaders::AptFile> getApt()
 			{
 				return apt;
 			}
@@ -140,7 +143,7 @@ namespace Game
 				loop = false;
 			}
 
-			inline bool IsSkipable()
+			inline bool isSkipable()
 			{
 				return canSkip;
 			}
@@ -157,7 +160,7 @@ namespace Game
 				imgName = name;
 			}
 
-			inline std::string GetImageName()
+			inline std::string getImageName()
 			{
 				return imgName;
 			}
@@ -173,7 +176,7 @@ namespace Game
 				aptName = name;
 			}
 
-			inline const std::string GetAptName()
+			inline const std::string getAptName()
 			{
 				return aptName;
 			}
@@ -199,13 +202,13 @@ namespace Game
 
 		static std::vector<LoadInfo> loadOrder;
 
-		static void GetState();
+		static void getState();
 	public:
-		static void Initialize();
+		static void initialize();
 		static void parseGameInis();
-        static void Update(sf::Window& window);
-		static void KeyDown(const sf::Event::KeyEvent& keyEv);
-		static void KeyUp(const sf::Event::KeyEvent& keyEv);
+        static void update(sf::Window& window);
+		static void keyDown(const sf::Event::KeyEvent& keyEv);
+		static void keyUp(const sf::Event::KeyEvent& keyEv);
 	private:
 
 		static std::shared_ptr<StateInfo> cState;
