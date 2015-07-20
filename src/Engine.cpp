@@ -33,8 +33,8 @@ void Engine::Run()
     sf::ContextSettings settings;
     settings.antialiasingLevel = 2;
     settings.attributeFlags = sf::ContextSettings::Core;
-    settings.majorVersion = 3;
-    settings.minorVersion = 3;
+    settings.majorVersion = 4;
+    settings.minorVersion = 0;
     settings.depthBits = 8;
     settings.stencilBits = 24;
 
@@ -66,7 +66,7 @@ void Engine::Run()
         }
 		Game::Handler::Update(m_window);
         GraphicsSystem::Update();
-        GraphicsSystem::Render();
+        //GraphicsSystem::Render();
 		m_window.display();
 	}
 }

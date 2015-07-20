@@ -16,6 +16,13 @@ public:
 	struct INIObject
 	{};
 
+	struct AmbientStream : INIObject
+	{
+		std::string filename;
+		std::string volume;
+		std::string type;
+	};
+
 	struct DialogEvent : INIObject
 	{
 		std::string filename;
@@ -35,6 +42,10 @@ public:
 		std::vector<std::string> fonts;
 	};
 public:
+	static inline void AddAmbientStream(const std::string& name, const std::shared_ptr<AmbientStream> stream)
+	{
+		gd_ambientStreams[name] = stream;
+	}
 	static inline void AddDialogEvent(const std::string& name, const std::shared_ptr<DialogEvent> speech)
 	{
 		gd_dialogs[name] = speech;
@@ -89,6 +100,8 @@ public:
 	static const std::string videoINI;
 	static const std::string speechINI;
 	static const std::string languageINI;
+	static const std::string ambientStreamINI;
+
 	//DATA paths
 	static const std::string dataDIR;
 	static const std::string artDIR;
@@ -103,4 +116,6 @@ private:
 	static std::map<std::string, std::shared_ptr<sf::InputStream>> gd_fonts;
 
     static std::shared_ptr<sf::InputStream> gd_defaultFont;
+
+	static std::map<std::string, std::shared_ptr<AmbientStream>> gd_ambientStreams;
 };

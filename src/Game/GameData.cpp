@@ -10,9 +10,11 @@ const std::string GameData::compiledtexDIR = artDIR + "compiledtextures/";
 const std::string GameData::videoINI = dataDIR + "ini/video.ini";
 const std::string GameData::speechINI = dataDIR + "ini/speech.ini";
 const std::string GameData::languageINI = "language.ini";
+const std::string GameData::ambientStreamINI = dataDIR + "ini/ambientStream.ini";
 
 std::map<std::string, std::shared_ptr<GameData::DialogEvent>> GameData::gd_dialogs;
 std::map<std::string, std::shared_ptr<GameData::Video>> GameData::gd_videos;
 std::map<std::string, std::shared_ptr<sf::InputStream>> GameData::gd_fonts;
 std::shared_ptr<GameData::Language> GameData::gd_language;
 std::shared_ptr<sf::InputStream> GameData::gd_defaultFont = nullptr;
+std::map<std::string, std::shared_ptr<GameData::AmbientStream>> GameData::gd_ambientStreams;

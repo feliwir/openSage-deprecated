@@ -35,14 +35,14 @@ void GraphicsSystem::Clear()
 
 void GraphicsSystem::Render()
 {
-    m_shaders[VIDEO_SHADER]->Use();
+    //m_shaders[VIDEO_SHADER]->Use();
     
-    for (auto& renderable : m_videos)
-    {
-        renderable->Render(*m_shaders[VIDEO_SHADER]);
-    }
+    //for (auto& renderable : m_videos)
+    //{
+    //    renderable->Render(*m_shaders[VIDEO_SHADER]);
+    //}
 
-    m_shaders[VIDEO_SHADER]->UnUse();
+    //m_shaders[VIDEO_SHADER]->UnUse();
 }
 
 void GraphicsSystem::Update()

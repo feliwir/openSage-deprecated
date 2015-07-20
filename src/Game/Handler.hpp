@@ -202,6 +202,7 @@ namespace Game
 		static void GetState();
 	public:
 		static void Initialize();
+		static void parseGameInis();
         static void Update(sf::Window& window);
 		static void KeyDown(const sf::Event::KeyEvent& keyEv);
 		static void KeyUp(const sf::Event::KeyEvent& keyEv);

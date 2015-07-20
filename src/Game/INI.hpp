@@ -10,27 +10,30 @@ namespace Game
 	private:
 		enum ParserState
 		{
-			NEW_SECTION			= 0,
-			PARSE_VIDEO			= 1,
-			PARSE_DIALOG_EVENT	= 2,
-			PARSE_LANGUAGE		= 3,
+			NEW_SECTION		       = 0,
+			PARSE_AMBIENT_STREAM,
+			PARSE_VIDEO,
+			PARSE_DIALOG_EVENT,
+			PARSE_LANGUAGE,
 		};
 
 		enum Section
 		{
-			VIDEO			= 0,
-			DIALOG_EVENT	= 1,
-			LANGUAGE		= 2
+			AMBIENT_STREAM         = 0,
+			DIALOG_EVENT,
+			VIDEO,
+			LANGUAGE
 		};
 
 		enum Parameters
 		{
-			END				= 0,
-			FILENAME		= 1,
-			COMMENT			= 2,
-			VOLUME			= 3,
-			SUBMIX_SLIDER	= 4,
-			LOCALFONTFILE	= 5,
+			COMMENT                = 0,
+			END,
+			FILENAME,
+			LOCALFONTFILE,
+			TYPE,
+			VOLUME,
+			SUBMIX_SLIDER,
 		};
 
 		static const std::map<std::string, Section> sections;

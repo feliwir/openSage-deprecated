@@ -59,6 +59,13 @@ void Handler::Initialize()
 	GetState();	
 }
 
+void Handler::parseGameInis()
+{
+	auto iniStream = FileSystem::Open(GameData::ambientStreamINI);
+	std::string iniStr;
+	iniStr = Util::ReadAll(iniStream);
+}
+
 //go into the next gamestate
 void Handler::GetState()
 {
@@ -68,7 +75,6 @@ void Handler::GetState()
 	{
 		std::cout << "Finished game" << std::endl;
 	}
-	
 
     //check which type of gamestate does follow now
 	for (auto& l : loadOrder)
@@ -107,7 +113,6 @@ void Handler::GetState()
 			done = true;
             GraphicsSystem::AddVideo(vid);
 			cState = std::make_shared<CinematicInfo>(vid, mp3, args->IsSkipable());
-			
 		}
 			break;
 		case APT_FILE:
@@ -154,7 +159,6 @@ void Handler::GetState()
 		default:
 			break;
 		}
-
 		if (done)
 			break;
 	}
