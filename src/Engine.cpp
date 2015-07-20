@@ -66,7 +66,7 @@ void Engine::Run()
         }
 		Game::Handler::Update(m_window);
         GraphicsSystem::Update();
-        //GraphicsSystem::Render();
+        GraphicsSystem::Render();
 		m_window.display();
 	}
 }
