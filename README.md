@@ -1,3 +1,7 @@
+# INFO
+this project is not maintained anymore. Please check out:
+https://github.com/tgjones/OpenSAGE
+
 # openSage
 An opensource implementation for the SAGE engine (Strategy Action Game Engine)
 
